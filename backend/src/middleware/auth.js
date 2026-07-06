@@ -5,19 +5,27 @@ const config = require('../config/environment');
 // Extract JWT secret and expiration from environment config
 const JWT_SECRET = config.jwtSecret;
 const JWT_EXPIRES_IN = config.jwtExpiresIn;
+console.log('JWT_SECRET from config:', JWT_SECRET);
 
 // ===========================
 // Verify Token Middleware
 // ===========================
 function verifyToken(req, res, next) {
   const auth = req.headers['authorization'];
+  console.log('Auth header:', auth);
   if (!auth || !auth.startsWith('Bearer ')) {
+    console.log('No auth header or does not start with Bearer');
     return res.status(401).json({ error: 'Authentication required' });
   }
+  const token = auth.slice(7);
+  console.log('Token:', token);
   try {
-    req.user = jwt.verify(auth.slice(7), JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('Token decoded:', decoded);
+    req.user = decoded;
     next();
   } catch (err) {
+    console.log('JWT verification error:', err.message);
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }

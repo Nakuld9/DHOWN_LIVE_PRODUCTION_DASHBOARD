@@ -1,0 +1,4 @@
+◇ injected env (16) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+JWT_SECRET from config: 0291743df25dc1f4fc6ed723627f50944a28815697cdf6adff31e24be7eb8865
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+Server running on port 4002

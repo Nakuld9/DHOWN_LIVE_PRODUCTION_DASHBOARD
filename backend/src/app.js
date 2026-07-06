@@ -30,8 +30,9 @@ if (fs.existsSync(FRONTEND_BUILD)) {
   app.use(express.static(FRONTEND_BUILD));
 }
 
-// TODO: Mount routes here (will be implemented later)
-// app.use('/api', require('./routes'));
+// Mount settings routes
+const settingsRouter = require('./routes/settings');
+app.use('/api/settings', settingsRouter);
 
 // Error handling middleware (to be implemented)
 app.use((err, req, res, next) => {

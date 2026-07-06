@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const config = {
   port: parseInt(process.env.PORT || '4000'),
   jwtSecret: process.env.JWT_SECRET || 'dhown_mes_jwt_secret_2026',

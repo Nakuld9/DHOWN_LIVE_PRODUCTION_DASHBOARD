@@ -6,7 +6,7 @@ const STATUS_MAP = {
   RUNNING:  { color: "#22c55e", label: "Running" },
   STOPPED:  { color: "#ef4444", label: "Stopped" },
   OFFLINE:  { color: "#f59e0b", label: "Collector Offline" },
-  NO_DATA:  { color: "#6b7280", label: "Waiting for Data" },
+  NO_DATA:  { color: "#6b7280", label: "Collector Offline" },
 };
 
 const fmt = (val, decimals = 2) =>
@@ -36,7 +36,7 @@ const MachineCard = ({ machine, supervisorMobile = "8727048169" }) => {
   const todayProdDisplay  = noData ? "--" : fmt(machine.today_production_kg) + " KG";
   const shiftProdDisplay  = noData ? "--" : fmt(machine.shift_production_kg) + " KG";
   const dcStatusDisplay   = noData ? "No Data" : (machine.dc_status || "OFFLINE").toUpperCase();
-  const operatorDisplay   = machine.operator || "Not Assigned";
+  const operatorDisplay   = machine.assigned_operator || machine.operator || "Not Assigned";
   const fabricDisplay     = machine.fabric || "--";
 
   const metric = (label, value, color) => (

@@ -153,7 +153,19 @@
       "Bash(eas *)",
       "Bash(Select-Object FullName, PSIsContainer)",
       "Bash(Format-Table -AutoSize)",
-      "PowerShell(Get-ChildItem \"D:\\\\DHOWN_LIVE_PRODUCTION_DASHBOARD\" -Recurse -Depth 3 | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.git|build' } | Select-Object FullName, PSIsContainer | Format-Table -AutoSize)"
+      "PowerShell(Get-ChildItem \"D:\\\\DHOWN_LIVE_PRODUCTION_DASHBOARD\" -Recurse -Depth 3 | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.git|build' } | Select-Object FullName, PSIsContainer | Format-Table -AutoSize)",
+      "Bash(openssl rand *)",
+      "Bash(findstr :4000)",
+      "Bash(findstr 16664)",
+      "PowerShell(node server.js)",
+      "Bash(xargs grep -l \"checklist\\\\|inspection\\\\|defect\")",
+      "Bash(dir \"D:\\\\DHOWN_LIVE_PRODUCTION_DASHBOARD\\\\backend\\\\migration_*.js\" /o-d)",
+      "Bash(D: *)",
+      "Bash(findstr node *)",
+      "Bash(xargs grep -l -i \"quality\\\\|inspection\\\\|defect\\\\|qc\")",
+      "Bash(PORT=4001 node src/server.js)",
+      "Bash(jobs *)",
+      "Bash(git add *)"
     ]
   }
 }

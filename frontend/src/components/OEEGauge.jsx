@@ -37,7 +37,7 @@ const OEEGauge = () => {
   const oee = data ? parseFloat(data.oee) : null;
 
   return (
-    <div style={{ background: "#0d1b2f", border: "1px solid #16345d", borderRadius: "12px", padding: "20px", color: "white", textAlign: "center" }}>
+    <div style={{ background: "#161B22", border: "1px solid #30363d", borderRadius: "12px", padding: "20px", color: "white", textAlign: "center" }}>
       <h3 style={{ margin: "0 0 8px" }}>OEE {data?.shift ? `(Shift ${data.shift})` : ""}</h3>
 
       {oee === null ? (

@@ -246,7 +246,7 @@ const Production = () => {
                 }}
               >
                 {machine.live_status === "NO_DATA"
-                  ? "Waiting for Data"
+                  ? "Collector Offline"
                   : machine.live_status === "OFFLINE"
                   ? "Collector Offline"
                   : machine.live_status || "--"}

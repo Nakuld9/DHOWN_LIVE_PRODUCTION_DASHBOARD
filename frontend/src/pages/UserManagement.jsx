@@ -75,9 +75,11 @@ export default function UserManagement() {
 
   const loadAuditLogs = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/audit-logs?module=USER_MANAGEMENT&limit=50");
-      const data = await res.json();
-      setAuditLogs(Array.isArray(data) ? data : []);
+      const res = await fetch("http://localhost:4000/api/audit-logs?module=USER_MANAGEMENT&limit=50", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("dhown_token")}` },
+      });
+      const json = await res.json();
+      setAuditLogs(Array.isArray(json) ? json : (json.data || []));
     } catch (err) {
       console.error(err);
     }

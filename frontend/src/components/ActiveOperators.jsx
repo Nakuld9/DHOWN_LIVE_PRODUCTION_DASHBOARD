@@ -25,8 +25,8 @@ export default function ActiveOperators() {
   return (
     <div
       style={{
-        background: "#071120",
-        border: "1px solid #16345d",
+        background: "#161B22",
+        border: "1px solid #30363d",
         borderRadius: "10px",
         padding: "15px",
       }}

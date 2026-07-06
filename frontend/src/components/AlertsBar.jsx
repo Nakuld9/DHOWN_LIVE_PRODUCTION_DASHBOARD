@@ -40,12 +40,12 @@ const AlertsBar = () => {
   return (
     <div
       style={{
-        background: "#0d1b2f",
-        border: "1px solid #1f3b66",
+        background: "#161B22",
+        border: "1px solid #30363d",
         borderRadius: "12px",
         padding: "12px 20px",
         color: "white",
-        marginTop: "20px",
+        marginTop: "0",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "20px", overflowX: "auto" }}>

@@ -28,7 +28,7 @@ const DowntimeSummary = () => {
   const reasons = stats?.top_reasons || legacy?.reasons || [];
 
   return (
-    <div style={{ background: "#0d1b2f", borderRadius: "12px", padding: "20px", color: "white", border: "1px solid #16345d" }}>
+    <div style={{ background: "#161B22", borderRadius: "12px", padding: "20px", color: "white", border: "1px solid #30363d" }}>
       {/* KPI row */}
       {stats && (
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
@@ -75,7 +75,7 @@ const DowntimeSummary = () => {
 
 function KpiMini({ label, value, color }) {
   return (
-    <div style={{ flex: 1, background: "#071120", border: "1px solid #16345d", borderRadius: "8px", padding: "8px 10px", textAlign: "center" }}>
+    <div style={{ flex: 1, background: "#071120", border: "1px solid #30363d", borderRadius: "8px", padding: "8px 10px", textAlign: "center" }}>
       <div style={{ color, fontSize: "26px", fontWeight: "bold", lineHeight: 1 }}>{value ?? "—"}</div>
       <div style={{ color: "#7da2d6", fontSize: "12px", marginTop: "3px" }}>{label}</div>
     </div>

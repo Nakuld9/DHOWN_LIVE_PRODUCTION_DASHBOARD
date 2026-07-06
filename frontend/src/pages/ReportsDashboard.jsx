@@ -25,8 +25,8 @@ const REPORTS = [
     type: 'shifts',
     title: 'Shift Report',
     icon: '🕐',
-    desc: 'Shift-wise production, downtime, running machines, operators and OEE',
-    tags: ['Production', 'Downtime', 'OEE', 'Operators'],
+    desc: 'Shift-wise production, downtime, OEE, operators and supervisor handover notes',
+    tags: ['Production', 'Downtime', 'OEE', 'Handover Notes'],
   },
   {
     type: 'machines',
@@ -46,22 +46,8 @@ const REPORTS = [
     type: 'operators',
     title: 'Operator Report',
     icon: '👷',
-    desc: 'Operator productivity including machines worked, production KG and hours',
-    tags: ['Production KG', 'Hours', 'Machines', 'Department'],
-  },
-  {
-    type: 'rfid',
-    title: 'RFID Activity Report',
-    icon: '📡',
-    desc: 'Complete RFID scan history with operator, machine and timestamp details',
-    tags: ['RFID Tag', 'Operator', 'Machine', 'Scan Time'],
-  },
-  {
-    type: 'assignments',
-    title: 'Assignment Report',
-    icon: '🔗',
-    desc: 'Operator-machine assignment history with assigned and released timestamps',
-    tags: ['Machine', 'Operator', 'Assigned At', 'Duration'],
+    desc: 'Operator productivity, machine assignments, RFID scans and hours worked',
+    tags: ['Production KG', 'Assignments', 'RFID Scans', 'Hours'],
   },
   {
     type: 'summary',
@@ -76,13 +62,6 @@ const REPORTS = [
     icon: '🔧',
     desc: 'PM schedule status — overdue tasks, due-soon alerts, completion history by machine and priority',
     tags: ['Overdue', 'Due Soon', 'Priority', 'Machine-wise'],
-  },
-  {
-    type: 'shift-handover',
-    title: 'Shift Handover Report',
-    icon: '📝',
-    desc: 'Supervisor handover notes — production KG, machines down, issues and pending actions by shift',
-    tags: ['Day / Night', 'Production KG', 'Issues', 'Pending Actions'],
   },
 ];
 

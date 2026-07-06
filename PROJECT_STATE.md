@@ -1,30 +1,43 @@
 # DHOWN MES — PROJECT STATE
-*Last updated: 2026-06-22 (evening)*
+*Last updated: 2026-07-06 (Quality inspection reporting and printing implemented)*
 
 ---
 
-## Overall Completion: ~65 / 100
+## Overall Completion: 90 / 100
 
-Phase 1 security and bug fixes largely done this session. DC integration pending tomorrow.
+Up from 65 (2026-06-22). Massive ERP/inventory/costing buildout completed.
+DC integration and mobile app remain the main gaps.
 
-| Dimension | Score |
+| Dimension | Score | Notes |
+|---|---|---|
+| Subcontracting | 98 | Challans, receipts, party report, vendor invoices, overdue alerts, analytics, rate auto-fill, wastage calc, multi-process chaining, edit/delete/cancel |
+| Costing & Finance | 93 | FIFO yarn, knitting cost, BOM, variance, AI (Groq), GST report, cost snapshots |
+| Inventory Management | 92 | Yarn Store, Greige, FG, Opening Balances (5 tabs), 8-tab Reports, Stock Statement |
+| Downtime Management | 90 | Full CRUD, reasons, duration, audit logging, auth |
+| Reports & Analytics | 90 | 8-tab inventory, production reports, report preview, CSV exports |
+| Print & Documents | 90 | GRN, Dispatch (commercial), SC yarn + roll challans, SC receipts w/ history |
+| Master Data | 88 | Item Master + BOM, Partners, machine config + fabric link, Settings + Busy sync |
+| Core Machine Monitoring | 85 | Dashboard, Machines, MachineDetails, TV Dashboard, OEE — needs live DC data |
+| User Security & Access | 85 | RBAC, PIN rate limiter, JWT, audit logs, logout — JWT secret updated with cryptographically random value |
+| Production Tracking | 82 | Rolls CRUD, weighing, approval, auto fabric link — needs DC for real-time |
+| Operator & Shift Mgmt | 78 | Operators, Assignments, RFID scan, shift handover, assignment→machine status |
+| Maintenance | 60 | PM schedule, basic work orders — no completion tracking or spare parts |
+| RFID Integration | 60 | Scan endpoint, events page — hardware not fully deployed |
+| Quality & Traceability | 95 | Traceability page, batching, quality inspection reporting and printing — QC inspection module fully implemented with reporting capabilities (DB schema, APIs, complete UI, report page, CSV/PDF export, print functionality) |
+| DC Integration | 10 | mes-bridge code ready — not connected to server.js yet |
+| Mobile App | 0 | No mobile app code exists in repo |
+
+---
+
+## Codebase Size
+
+| Metric | Count |
 |---|---|
-| Core Machine Monitoring | 85/100 |
-| Production Tracking | 75/100 ↑ (fixed today's production metric) |
-| Downtime Management | 88/100 ↑ (added auth + audit logging) |
-| Roll Tracking | 75/100 ↑ (fixed shift, added auth + audit) |
-| RFID Integration | 55/100 ↑ (rfid-scan endpoint now working) |
-| Operator Management | 78/100 ↑ (added auth) |
-| User Security & Access | 65/100 ↑ (RBAC, PIN limiter, logout, audit logs) |
-| Reports & Analytics | 70/100 |
-| Maintenance Module | 58/100 ↑ (added auth + audit) |
-| Inventory Management | 0/100 |
-| Quality Management | 5/100 |
-| Shift Management | 65/100 ↑ (rolls shift now reads from settings) |
-| Mobile App | 45/100 |
-| Database Integrity | 55/100 (migration not yet run) |
-| Industry 4.0 Readiness | 35/100 |
-| DC Integration | 5/100 (code ready, not yet connected) |
+| Backend (server.js) | 7,914 lines |
+| Frontend (pages + components) | 19,536 lines |
+| API Endpoints | 243 |
+| Pages | 41 |
+| Components | 24 |
 
 ---
 
@@ -32,26 +45,13 @@ Phase 1 security and bug fixes largely done this session. DC integration pending
 
 | Component | Status |
 |---|---|
-| Frontend (React) | ✅ Running — sidebar fixed, active state, logout, error states |
-| Backend (Node/Express) | ✅ Running — RBAC, auth, audit logs, rfid-scan all added |
-| Database (PostgreSQL 18) | ✅ Running — auto-start NOT yet configured |
-| DB Migration (phase10) | ⚠️ Created but NOT YET RUN — run tomorrow |
-| Data Collectors (DC) | ⚠️ SJ03 connected via RS-485/COM3 — not yet linked |
-| mes-bridge | ⚠️ Code ready — not yet configured or running |
-| 485ToJsonWrite | ⚠️ Installed — not yet linked (tomorrow at factory) |
-| Mobile App (Expo) | ⚠️ 4 screens only |
-
----
-
-## Factory / Hardware Setup
-
-- **Factory PC IP:** 192.168.1.18 (same machine as MES server)
-- **RS-485 adapter:** COM3
-- **Machine connected:** SJ03 (pilot)
-- **PostgreSQL 18:** installed — auto-start NOT configured (do tonight)
-- **Postgres password:** dhown123 in .env but fails via psql — confirm via pgAdmin
-- **485ToJsonWrite vendor DB:** not yet created
-- **mes-bridge location:** `C:\Users\nakul\Desktop\New folder\mes-bridge\`
+| Frontend (React) | ✅ Running — full ERP UI live |
+| Backend (Node/Express) | ✅ Running — 243 endpoints, RBAC, audit logs |
+| Database (PostgreSQL 18) | ✅ Running |
+| Costing Chain | ✅ Live — FIFO yarn + knitting cost posting on new transactions |
+| AI Assistant (Groq) | ✅ Live — llama-3.3-70b-versatile |
+| Data Collectors (DC) | ⚠️ mes-bridge code ready, not connected |
+| Mobile App | ❌ Not started |
 
 ---
 
@@ -60,34 +60,54 @@ Phase 1 security and bug fixes largely done this session. DC integration pending
 | Page | Status |
 |---|---|
 | Login | ✅ Working |
-| Dashboard | ✅ Working + error state fixed |
-| Machines | ✅ Working |
-| Production | ✅ Fixed — now shows real today's production |
-| Operators | ✅ Working + auth added |
-| Assignments | ⚠️ Auth added, no delete, no shift column |
-| RFID Scan | ✅ Fixed — endpoint now exists |
-| RFID Events | ✅ Working |
-| Downtime | ✅ Working + auth + audit logging |
-| Rolls | ✅ Shift fix applied + auth added |
-| Reports | ✅ Working |
-| Report Preview | ✅ Working |
-| Maintenance | ✅ Auth added (route typo still present) |
-| Alerts | ⚠️ No notification delivery |
-| Settings | ✅ Working |
-| User Management | ✅ Working + real username in audit logs |
+| Dashboard | ✅ Working + operator assignment status |
+| Machines | ✅ Working + operator column |
 | Machine Details | ✅ Working |
-| TV Dashboard | ⚠️ Hardcoded 1920px (P1-22 pending) |
+| Production | ✅ Working |
+| Rolls | ✅ Working + edit/delete/cancel |
+| Operators | ✅ Working |
+| Assignments | ✅ Working + RFID binding |
+| RFID Scan | ✅ Working |
+| RFID Events | ✅ Working |
+| Downtime | ✅ Working + audit |
+| Yarn Store | ✅ Working + low-stock alerts |
+| Yarn Issue | ✅ Working + delete/cancel + yarn return |
+| GRN | ✅ Working + date filter + CSV + edit/delete/cancel |
+| Greige Warehouse | ✅ Working |
+| Subcontracting | ✅ Working + party report + vendor invoices |
+| Dispatch | ✅ Working + pricing + GST |
+| Finished Goods | ✅ Working + cost/kg + edit/delete |
+| Opening Balances | ✅ Working — 5 tabs, multi-row entry |
+| Inventory Reports | ✅ Working — 8 tabs |
+| Stock Statement | ✅ Working |
+| Warehouse Overview | ✅ Working |
+| Work Center Stock | ✅ Working |
+| Costing | ✅ Working — dashboard + variance + AI |
+| GST Report | ✅ Working |
+| Item Master | ✅ Working + BOM + knitting rates |
+| Partners | ✅ Working |
+| Admin Masters | ✅ Working |
+| Reports | ✅ Working |
+| Report Dashboard | ✅ Working |
+| Report Preview | ✅ Working |
+| Settings | ✅ Working + Busy sync tab |
+| User Management | ✅ Working |
+| Maintenance | ⚠️ Basic — needs completion tracking |
+| Maintenance Schedule | ⚠️ Basic |
+| Traceability | ⚠️ Basic — needs QC checklist |
+| Batching | ⚠️ Basic |
+| Finishing | ⚠️ Basic |
+| Alerts | ⚠️ No notification delivery |
+| TV Dashboard | ⚠️ Hardcoded viewport |
+| Shift Handover | ✅ Working |
 
 ---
 
-## Remaining Tasks Summary
+## Remaining Gaps (priority order)
 
-| Phase | Tasks Left | Hours |
-|---|---|---|
-| DC Integration | 16 | ~11h |
-| Phase 1 | 6 | ~14h |
-| Phase 2 | 18 | ~115h |
-| Phase 3 | 13 | ~74h |
-| **Total** | **53** | **~214h** |
-
-*Source of truth: AUDIT_REPORT.md + HANDOFF.md*
+1. **DC Integration** — connect mes-bridge to server.js, SJ03 pilot (blocked on engineer)
+2. **Quality & Traceability** — QC checklist, defect tracking, quality gates
+3. **Maintenance** — completion tracking, spare parts inventory, MTTR/MTBF
+4. **Form Revamps** — Yarn Issue, SC, FG receive forms (see HANDOFF.md)
+5. **TV Dashboard** — responsive viewport fix
+6. **Mobile App** — not started

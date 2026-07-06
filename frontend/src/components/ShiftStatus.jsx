@@ -50,7 +50,7 @@ const ShiftStatus = () => {
   const shiftLabel = shift === 'D' ? 'Day Shift' : shift === 'N' ? 'Night Shift' : `Shift ${shift}`;
 
   return (
-    <div style={{ background: "#081426", border: "1px solid #16345d", borderRadius: "12px", padding: "20px", color: "white" }}>
+    <div style={{ background: "#161B22", border: "1px solid #30363d", borderRadius: "12px", padding: "20px", color: "white" }}>
       <h3 style={{ margin: "0 0 8px" }}>SHIFT STATUS</h3>
 
       {!data ? (

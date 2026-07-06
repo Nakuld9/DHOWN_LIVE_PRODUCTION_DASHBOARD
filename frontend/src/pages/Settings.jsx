@@ -37,6 +37,7 @@ const sectionTabs = [
   "Machine Configuration",
   "Roll Number Format",
   "Data Collectors",
+  "Busy Sync",
   "Backup & Restore",
 ];
 
@@ -65,6 +66,7 @@ export default function Settings() {
   const [machines, setMachines] = useState([]);
   const [dataCollectors, setDataCollectors] = useState([]);
   const [fabricTypes, setFabricTypes] = useState([]);
+  const [fabricItems, setFabricItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
@@ -82,7 +84,7 @@ export default function Settings() {
   const [fabricEdits, setFabricEdits] = useState({});
 
   useEffect(() => {
-    Promise.all([loadSettings(), loadDataCollectors(), loadMachines(), loadFabricTypes()]).finally(() => setLoading(false));
+    Promise.all([loadSettings(), loadDataCollectors(), loadMachines(), loadFabricTypes(), loadFabricItems()]).finally(() => setLoading(false));
   }, []);
 
   const loadSettings = async () => {
@@ -120,6 +122,21 @@ export default function Settings() {
       const res = await fetch("http://localhost:4000/api/fabric-types");
       const data = await res.json();
       setFabricTypes(Array.isArray(data) ? data : []);
+    } catch (err) { console.error(err); }
+  };
+
+  const loadFabricItems = async () => {
+    try {
+      const t = localStorage.getItem('dhown_token');
+      const res = await fetch("http://localhost:4000/api/erp/items?limit=200", {
+        headers: { Authorization: `Bearer ${t}` }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const rows = data.data || data;
+      // Keep only fabric categories
+      const fabricCats = ['FABRIC'];
+      setFabricItems(rows.filter(i => fabricCats.includes(i.category_code) || i.category_name?.toLowerCase().includes('fabric')));
     } catch (err) { console.error(err); }
   };
 
@@ -384,106 +401,11 @@ export default function Settings() {
       {/* ─── MACHINE CONFIGURATION ─── */}
       {activeTab === "Machine Configuration" && (
         <>
-          {/* Fabric Types Master */}
-          <div style={cardStyle}>
-            <h2 style={{ color: "#f4ae1f", marginTop: 0 }}>Fabric Types</h2>
-            <p style={{ color: "#7da2d6", fontSize: "14px", marginBottom: "16px" }}>
-              Define fabric codes used in roll IDs. e.g. code <strong style={{color:"#fff"}}>SJ</strong> = Single Jersey → Roll ID: DHM-SJ01-<strong style={{color:"#FFD700"}}>SJ</strong>-20260615-A-001
-            </p>
-
-            {/* Add new fabric */}
-            <div style={{ display: "grid", gridTemplateColumns: "100px 1fr 1fr auto", gap: "10px", marginBottom: "16px", alignItems: "flex-end" }}>
-              <div>
-                <div style={{ color: "#7da2d6", fontSize: "12px", marginBottom: "4px" }}>CODE *</div>
-                <input style={{ ...inputStyle, marginBottom: 0, textTransform: "uppercase" }}
-                  placeholder="SJ" maxLength={10}
-                  value={fabricForm.code}
-                  onChange={e => setFabricForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} />
-              </div>
-              <div>
-                <div style={{ color: "#7da2d6", fontSize: "12px", marginBottom: "4px" }}>NAME *</div>
-                <input style={{ ...inputStyle, marginBottom: 0 }}
-                  placeholder="Single Jersey"
-                  value={fabricForm.name}
-                  onChange={e => setFabricForm(f => ({ ...f, name: e.target.value }))} />
-              </div>
-              <div>
-                <div style={{ color: "#7da2d6", fontSize: "12px", marginBottom: "4px" }}>DESCRIPTION</div>
-                <input style={{ ...inputStyle, marginBottom: 0 }}
-                  placeholder="Optional description"
-                  value={fabricForm.description}
-                  onChange={e => setFabricForm(f => ({ ...f, description: e.target.value }))} />
-              </div>
-              <button onClick={addFabric}
-                style={{ background: "#FFD700", color: "#111", border: "none", padding: "10px 18px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
-                + Add
-              </button>
-            </div>
-            {fabricMsg && <p style={{ color: fabricMsg === "Added!" ? "#22c55e" : "#ef4444", fontSize: "13px", margin: "0 0 12px" }}>{fabricMsg}</p>}
-
-            {/* Fabric types table */}
-            <table width="100%" style={{ borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#0d1b2f", borderBottom: "1px solid #16345d" }}>
-                  {["Code", "Name", "Description", "Used By", "Actions"].map(h => (
-                    <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "#f4ae1f", fontSize: "13px" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {fabricTypes.map(ft => {
-                  const usedBy = machines.filter(m => m.fabric_code === ft.code).map(m => m.machine_id).join(", ");
-                  const isEdit = editingFabric === ft.code;
-                  return (
-                    <tr key={ft.code} style={{ borderBottom: "1px solid #0d1b2f" }}>
-                      <td style={{ padding: "10px 12px" }}>
-                        <span style={{ background: "#16345d", color: "#FFD700", fontWeight: "bold", padding: "3px 10px", borderRadius: "4px", fontFamily: "monospace" }}>{ft.code}</span>
-                      </td>
-                      <td style={{ padding: "10px 12px" }}>
-                        {isEdit
-                          ? <input style={{ ...inputStyle, marginBottom: 0, width: "160px" }} value={fabricEdits.name}
-                              onChange={e => setFabricEdits(p => ({ ...p, name: e.target.value }))} />
-                          : <span style={{ color: "white" }}>{ft.name}</span>}
-                      </td>
-                      <td style={{ padding: "10px 12px" }}>
-                        {isEdit
-                          ? <input style={{ ...inputStyle, marginBottom: 0, width: "200px" }} value={fabricEdits.description || ""}
-                              onChange={e => setFabricEdits(p => ({ ...p, description: e.target.value }))} />
-                          : <span style={{ color: "#7da2d6", fontSize: "13px" }}>{ft.description || "—"}</span>}
-                      </td>
-                      <td style={{ padding: "10px 12px", color: "#7da2d6", fontSize: "13px" }}>{usedBy || "—"}</td>
-                      <td style={{ padding: "10px 12px" }}>
-                        {isEdit ? (
-                          <span style={{ display: "flex", gap: "6px" }}>
-                            <button onClick={() => saveFabric(ft.code)}
-                              style={{ background: "#22c55e", color: "#000", border: "none", padding: "5px 12px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>Save</button>
-                            <button onClick={() => setEditingFabric(null)}
-                              style={{ background: "#374151", color: "#fff", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}>Cancel</button>
-                          </span>
-                        ) : (
-                          <span style={{ display: "flex", gap: "6px" }}>
-                            <button onClick={() => { setEditingFabric(ft.code); setFabricEdits({ name: ft.name, description: ft.description || "" }); }}
-                              style={{ background: "#16345d", color: "#f4ae1f", border: "1px solid #f4ae1f", padding: "5px 10px", borderRadius: "4px", cursor: "pointer", fontSize: "13px" }}>Edit</button>
-                            <button onClick={() => deleteFabric(ft.code)}
-                              style={{ background: "transparent", color: "#ef4444", border: "1px solid #ef4444", padding: "5px 10px", borderRadius: "4px", cursor: "pointer", fontSize: "13px" }}>Delete</button>
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {fabricTypes.length === 0 && (
-                  <tr><td colSpan={5} style={{ padding: "20px", color: "#7da2d6", textAlign: "center" }}>No fabric types yet. Add one above.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
           {/* Machine Configuration table */}
           <div style={cardStyle}>
             <h2 style={{ color: "#f4ae1f", marginTop: 0 }}>Machine Configuration</h2>
             <p style={{ color: "#7da2d6", fontSize: "14px", marginBottom: "16px" }}>
-              Assign a fabric code to each machine. This drives the Roll ID automatically.
+              Assign a fabric to each machine from <strong style={{ color: "#f4ae1f" }}>Item Master</strong>. To add new fabric types go to <strong style={{ color: "#f4ae1f" }}>Master Data → Item Master</strong>.
             </p>
             <div style={{ overflowX: "auto" }}>
               <table width="100%" style={{ borderCollapse: "collapse", minWidth: "900px" }}>
@@ -497,7 +419,7 @@ export default function Settings() {
                 <tbody>
                   {machines.map(m => {
                     const isEditing = editingMachine === m.machine_id;
-                    const fabricInfo = fabricTypes.find(f => f.code === m.fabric_code);
+                    const fabricInfo = fabricItems.find(f => (f.item_code || f.code) === m.fabric_code) || fabricTypes.find(f => f.code === m.fabric_code);
                     return (
                       <tr key={m.machine_id} style={{ borderBottom: "1px solid #0d1b2f" }}>
                         <td style={{ padding: "8px", fontWeight: "bold", color: "#f4ae1f", fontSize: "16px" }}>{m.machine_name}</td>
@@ -510,16 +432,18 @@ export default function Settings() {
                         </td>
                         <td style={{ padding: "8px" }}>
                           {isEditing
-                            ? <select style={{ ...inputStyle, marginBottom: 0, width: "160px" }}
+                            ? <select style={{ ...inputStyle, marginBottom: 0, width: "200px" }}
                                 value={machineEdits.fabric_code}
                                 onChange={e => setMachineEdits(p => ({ ...p, fabric_code: e.target.value }))}>
                                 <option value="">— None —</option>
-                                {fabricTypes.map(ft => (
-                                  <option key={ft.code} value={ft.code}>{ft.code} — {ft.name}</option>
+                                {(fabricItems.length > 0 ? fabricItems : fabricTypes).map(ft => (
+                                  <option key={ft.item_code || ft.code} value={ft.item_code || ft.code}>
+                                    {ft.item_code || ft.code} — {ft.item_name || ft.name}
+                                  </option>
                                 ))}
                               </select>
                             : fabricInfo
-                              ? <span><span style={{ background: "#16345d", color: "#FFD700", fontWeight: "bold", padding: "2px 8px", borderRadius: "4px", fontFamily: "monospace", marginRight: "6px" }}>{fabricInfo.code}</span><span style={{ color: "#aaa", fontSize: "13px" }}>{fabricInfo.name}</span></span>
+                              ? <span><span style={{ background: "#16345d", color: "#FFD700", fontWeight: "bold", padding: "2px 8px", borderRadius: "4px", fontFamily: "monospace", marginRight: "6px" }}>{fabricInfo.item_code || fabricInfo.code}</span><span style={{ color: "#aaa", fontSize: "13px" }}>{fabricInfo.item_name || fabricInfo.name}</span></span>
                               : <span style={{ color: "#ef4444", fontSize: "13px" }}>Not assigned</span>}
                         </td>
                         <td style={{ padding: "8px" }}>
@@ -769,9 +693,67 @@ export default function Settings() {
       )}
 
       {/* ─── BACKUP & RESTORE ─── */}
+      {activeTab === "Busy Sync" && (
+        <BusySyncTab />
+      )}
+
       {activeTab === "Backup & Restore" && (
         <BackupRestoreTab />
       )}
+    </div>
+  );
+}
+
+function BusySyncTab() {
+  const API = "http://localhost:4000";
+  const token = () => localStorage.getItem("dhown_token");
+  const today = new Date().toISOString().slice(0, 10);
+  const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+  const [from, setFrom] = React.useState(firstOfMonth);
+  const [to, setTo]     = React.useState(today);
+
+  const download = (type) => {
+    const params = new URLSearchParams({ from, to });
+    const url = `${API}/api/busy-sync/${type}-csv?${params}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `busy_${type}_${from}_${to}.csv`;
+    const headers = { Authorization: `Bearer ${token()}` };
+    fetch(url, { headers }).then(r => r.blob()).then(blob => {
+      a.href = URL.createObjectURL(blob);
+      a.click();
+    });
+  };
+
+  return (
+    <div style={{ background: '#0d1b2f', border: '1px solid #1e3a5f', borderRadius: 8, padding: '24px', maxWidth: 600 }}>
+      <h3 style={{ color: '#f4ae1f', margin: '0 0 6px' }}>Busy 21 CSV Export</h3>
+      <p style={{ color: '#7da2d6', fontSize: 13, margin: '0 0 20px' }}>
+        Download CSV files for manual import into Busy 21 accounting software.
+        GRN CSV → Purchase Vouchers. Dispatch CSV → Delivery Challan / Sales.
+      </p>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, alignItems: 'center' }}>
+        <div>
+          <div style={{ color: '#7da2d6', fontSize: 11, marginBottom: 4 }}>FROM DATE</div>
+          <input type="date" value={from} onChange={e => setFrom(e.target.value)}
+            style={{ background: '#050d1a', border: '1px solid #16345d', color: '#fff', padding: '8px 10px', borderRadius: 6, fontSize: 13 }} />
+        </div>
+        <div>
+          <div style={{ color: '#7da2d6', fontSize: 11, marginBottom: 4 }}>TO DATE</div>
+          <input type="date" value={to} onChange={e => setTo(e.target.value)}
+            style={{ background: '#050d1a', border: '1px solid #16345d', color: '#fff', padding: '8px 10px', borderRadius: 6, fontSize: 13 }} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 12 }}>
+        <button onClick={() => download('grn')}
+          style={{ background: '#f4ae1f', color: '#000', border: 'none', borderRadius: 7, padding: '10px 24px', fontWeight: 'bold', cursor: 'pointer', fontSize: 14 }}>
+          ⬇ GRN Purchases CSV
+        </button>
+        <button onClick={() => download('dispatch')}
+          style={{ background: '#22c55e', color: '#000', border: 'none', borderRadius: 7, padding: '10px 24px', fontWeight: 'bold', cursor: 'pointer', fontSize: 14 }}>
+          ⬇ Dispatch / Sales CSV
+        </button>
+      </div>
     </div>
   );
 }
@@ -847,102 +829,91 @@ function UsersSettingsTab() {
 }
 
 function BackupRestoreTab() {
-  const [status, setStatus] = React.useState("");
-  const [statusType, setStatusType] = React.useState("success");
+  const [msg, setMsg] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
+  const [backups, setBackups] = React.useState([]);
+  const [loadingList, setLoadingList] = React.useState(true);
+
+  const token = localStorage.getItem("dhown_token");
+  const headers = { Authorization: `Bearer ${token}` };
+
+  const loadBackups = async () => {
+    try {
+      const r = await fetch("http://localhost:4000/api/admin/backups", { headers });
+      setBackups(await r.json());
+    } catch {}
+    finally { setLoadingList(false); }
+  };
+
+  React.useEffect(() => { loadBackups(); }, []);
+
+  const showMsg = (text, isError = false) => {
+    setMsg({ text, isError });
+    setTimeout(() => setMsg(null), 5000);
+  };
 
   const createBackup = async () => {
     setLoading(true);
-    setStatus("");
     try {
-      const res = await fetch("http://localhost:4000/api/backup", { method: "POST" });
+      const res = await fetch("http://localhost:4000/api/admin/backup", { method: "POST", headers });
       const data = await res.json();
-      if (!res.ok) {
-        setStatusType("error");
-        setStatus("Backup failed: " + (data.error || "Unknown error"));
-      } else {
-        setStatusType("success");
-        setStatus(`Backup created: ${data.filename}`);
-      }
-    } catch (err) {
-      setStatusType("error");
-      setStatus("Backup failed: " + err.message);
-    }
-    setLoading(false);
+      if (!res.ok) { showMsg("Backup failed: " + (data.error || "Unknown error"), true); return; }
+      showMsg("Backup created successfully");
+      loadBackups();
+    } catch (err) { showMsg("Backup failed: " + err.message, true); }
+    finally { setLoading(false); }
   };
 
   return (
     <div style={{ background: "#071120", border: "1px solid #16345d", borderRadius: "12px", padding: "20px" }}>
-      <h2 style={{ color: "#f4ae1f", marginTop: 0 }}>Backup & Restore</h2>
-      <p style={{ color: "#7da2d6", fontSize: "15px", marginBottom: "20px" }}>
-        Create a full database backup using pg_dump. Backups are saved to{" "}
-        <code style={{ color: "#f4ae1f", background: "#0d1b2f", padding: "2px 6px", borderRadius: "4px" }}>
-          D:\DHOWN_LIVE_PRODUCTION_DASHBOARD\backups\
-        </code>
-      </p>
+      <h2 style={{ color: "#f4ae1f", marginTop: 0 }}>Backup &amp; Restore</h2>
 
+      {msg && (
+        <div style={{ background: msg.isError ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)", border: `1px solid ${msg.isError ? "#ef4444" : "#22c55e"}`, padding: "10px 16px", borderRadius: "8px", marginBottom: "16px", color: msg.isError ? "#ef4444" : "#22c55e", fontSize: "14px" }}>
+          {msg.text}
+        </div>
+      )}
+
+      {/* Actions */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px" }}>
         <div style={{ background: "#0d1b2f", border: "1px solid #16345d", borderRadius: "10px", padding: "18px" }}>
-          <div style={{ color: "#f4ae1f", fontWeight: "bold", marginBottom: "8px", fontSize: "16px" }}>
-            Create Backup
-          </div>
-          <p style={{ color: "#7da2d6", fontSize: "14px", marginBottom: "14px" }}>
-            Full dump of dhown_mes database in compressed format (.dump).
+          <div style={{ color: "#f4ae1f", fontWeight: "bold", marginBottom: "6px" }}>Manual Backup</div>
+          <p style={{ color: "#7da2d6", fontSize: "13px", marginBottom: "14px" }}>
+            Creates a full SQL dump of the database right now. Auto-backup runs daily at 2:00 AM.
           </p>
-          <button
-            onClick={createBackup}
-            disabled={loading}
-            style={{
-              background: loading ? "#374151" : "#f4ae1f",
-              color: loading ? "white" : "black",
-              border: "none",
-              padding: "10px 22px",
-              borderRadius: "6px",
-              cursor: loading ? "not-allowed" : "pointer",
-              fontWeight: "bold",
-              fontSize: "15px",
-            }}
-          >
-            {loading ? "Creating Backup..." : "Create Backup Now"}
+          <button onClick={createBackup} disabled={loading} style={{ background: loading ? "#374151" : "#f4ae1f", color: loading ? "white" : "black", border: "none", padding: "10px 20px", borderRadius: "6px", cursor: loading ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "14px" }}>
+            {loading ? "Creating..." : "Backup Now"}
           </button>
-          {status && (
-            <div style={{
-              marginTop: "12px",
-              background: statusType === "error" ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)",
-              border: `1px solid ${statusType === "error" ? "#ef4444" : "#22c55e"}`,
-              padding: "10px 14px", borderRadius: "7px",
-              color: statusType === "error" ? "#ef4444" : "#22c55e",
-              fontSize: "14px",
-            }}>
-              {status}
-            </div>
-          )}
         </div>
-
         <div style={{ background: "#0d1b2f", border: "1px solid #16345d", borderRadius: "10px", padding: "18px" }}>
-          <div style={{ color: "#7da2d6", fontWeight: "bold", marginBottom: "8px", fontSize: "16px" }}>
-            Restore
-          </div>
-          <p style={{ color: "#7da2d6", fontSize: "14px", marginBottom: "14px" }}>
-            To restore from a backup file, run the following command in PostgreSQL terminal:
-          </p>
-          <code style={{
-            display: "block",
-            background: "#050d1a",
-            border: "1px solid #16345d",
-            borderRadius: "6px",
-            padding: "12px",
-            color: "#22c55e",
-            fontSize: "13px",
-            wordBreak: "break-all",
-          }}>
-            pg_restore -U postgres -d dhown_mes -F c backup_file.dump
+          <div style={{ color: "#7da2d6", fontWeight: "bold", marginBottom: "6px" }}>Restore</div>
+          <p style={{ color: "#7da2d6", fontSize: "13px", marginBottom: "10px" }}>Run in PostgreSQL terminal to restore:</p>
+          <code style={{ display: "block", background: "#050d1a", border: "1px solid #16345d", borderRadius: "6px", padding: "10px", color: "#22c55e", fontSize: "12px", wordBreak: "break-all" }}>
+            psql -U postgres -d dhown_mes -f dhown_mes_YYYY-MM-DD.sql
           </code>
         </div>
       </div>
 
-      <div style={{ background: "rgba(244,174,31,0.08)", border: "1px solid rgba(244,174,31,0.3)", borderRadius: "8px", padding: "14px", color: "#f4ae1f", fontSize: "14px" }}>
-        Recommendation: Schedule daily backups and store copies on an external drive or network share.
+      {/* Backup list */}
+      <div style={{ color: "#f4ae1f", fontWeight: "bold", marginBottom: "10px", fontSize: "14px" }}>
+        Saved Backups <span style={{ color: "#7da2d6", fontWeight: "normal", fontSize: "13px" }}>(7-day retention)</span>
+      </div>
+      {loadingList && <div style={{ color: "#7da2d6", fontSize: "14px" }}>Loading...</div>}
+      {!loadingList && backups.length === 0 && (
+        <div style={{ color: "#7da2d6", fontStyle: "italic", fontSize: "14px" }}>No backups yet. Click "Backup Now" to create the first one.</div>
+      )}
+      {backups.map(b => (
+        <div key={b.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#0d1b2f", border: "1px solid #16345d", borderRadius: "8px", padding: "10px 14px", marginBottom: "8px" }}>
+          <div>
+            <div style={{ color: "white", fontSize: "14px", fontWeight: "bold" }}>{b.name}</div>
+            <div style={{ color: "#7da2d6", fontSize: "12px", marginTop: "2px" }}>{new Date(b.created_at).toLocaleString("en-IN")} &nbsp;·&nbsp; {b.size_kb} KB</div>
+          </div>
+          <span style={{ background: "rgba(34,197,94,0.15)", color: "#22c55e", padding: "3px 10px", borderRadius: "4px", fontSize: "12px", fontWeight: "bold" }}>✓ OK</span>
+        </div>
+      ))}
+
+      <div style={{ marginTop: "16px", background: "rgba(244,174,31,0.08)", border: "1px solid rgba(244,174,31,0.3)", borderRadius: "8px", padding: "12px 14px", color: "#f4ae1f", fontSize: "13px" }}>
+        Auto-backup runs every day at 2:00 AM · Backups saved to <code style={{ color: "#f4ae1f" }}>backend/backups/</code> · Older than 7 days are deleted automatically
       </div>
     </div>
   );

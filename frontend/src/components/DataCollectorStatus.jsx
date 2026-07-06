@@ -33,8 +33,8 @@ export default function DataCollectorStatus() {
   return (
     <div
       style={{
-        background: "#071a3d",
-        border: "1px solid #1e3a8a",
+        background: "#161B22",
+        border: "1px solid #30363d",
         borderRadius: "10px",
         padding: "15px",
         color: "white",

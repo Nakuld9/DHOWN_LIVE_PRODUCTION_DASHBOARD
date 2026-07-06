@@ -14,30 +14,50 @@ function detectShiftFromSettings(settings) {
   return (hour >= dayStart && hour < dayEnd) ? "D" : "N";
 }
 
+const PAGE_SIZE = 50;
+
 export default function Rolls() {
   const [rolls, setRolls]       = useState([]);
+  const [total, setTotal]       = useState(0);
+  const [page, setPage]         = useState(1);
+  const [pages, setPages]       = useState(1);
   const [machines, setMachines] = useState([]);
   const [weights, setWeights]   = useState({});
   const [showForm, setShowForm] = useState(false);
   const [form, setForm]         = useState({ machine_id: "", shift: "D" });
+  const [detectedShift, setDetectedShift] = useState("D");
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [editRoll, setEditRoll] = useState(null);
+  const [editWeight, setEditWeight] = useState("");
 
   useEffect(() => {
-    loadRolls();
+    loadRolls(1);
     loadMachines();
     fetch(`${API}/api/settings`)
       .then(r => r.json())
-      .then(s => setForm(f => ({ ...f, shift: detectShiftFromSettings(s) })))
+      .then(s => {
+        const shift = detectShiftFromSettings(s);
+        setDetectedShift(shift);
+        setForm(f => ({ ...f, shift }));
+      })
       .catch(() => {});
-    const t = setInterval(loadRolls, 5000);
+    const t = setInterval(() => loadRolls(1), 10000);
     return () => clearInterval(t);
   }, []);
 
-  const loadRolls = async () => {
+  const loadRolls = async (p = page) => {
     try {
-      const res = await fetch(`${API}/api/rolls`);
-      setRolls(await res.json());
+      const res = await fetch(`${API}/api/rolls?page=${p}&limit=${PAGE_SIZE}`);
+      const json = await res.json();
+      if (Array.isArray(json)) {
+        setRolls(json);
+        setTotal(json.length); setPages(1);
+      } else {
+        setRolls(json.data || []);
+        setTotal(json.total ?? 0);
+        setPages(json.pages ?? 1);
+      }
     } catch (err) { console.error(err); }
   };
 
@@ -48,7 +68,7 @@ export default function Rolls() {
     } catch (err) { console.error(err); }
   };
 
-  const handleMachineChange = (machine_id) => {
+const handleMachineChange = (machine_id) => {
     setForm(f => ({ ...f, machine_id }));
   };
 
@@ -66,7 +86,7 @@ export default function Rolls() {
       const data = await res.json();
       if (!res.ok) { setFormError(data.error || "Failed to open roll"); return; }
       setShowForm(false);
-      setForm({ machine_id: "", shift: detectShift() });
+      setForm({ machine_id: "", shift: detectedShift });
       loadRolls();
     } catch { setFormError("Cannot connect to server"); }
     finally { setSubmitting(false); }
@@ -87,6 +107,8 @@ export default function Rolls() {
       loadRolls();
     } catch (err) { console.error(err); }
   };
+
+  const goTo = (p) => { setPage(p); loadRolls(p); };
 
   const openRolls    = rolls.filter(r => r.status === "OPEN").length;
   const pendingRolls = rolls.filter(r => r.status === "WAITING_WEIGHT").length;
@@ -126,13 +148,13 @@ export default function Rolls() {
           <label style={labelStyle}>
             Shift
             <span style={{ color: "#22c55e", fontWeight: "normal", marginLeft: 8, fontSize: 11 }}>
-              ● Auto-detected: {detectShift() === "D" ? "Day (08:00–20:00)" : "Night (20:00–08:00)"} — change if needed
+              ● Auto-detected: {detectedShift === "D" ? "Day (08:00–20:00)" : "Night (20:00–08:00)"} — change if needed
             </span>
           </label>
           <select style={inputStyle} value={form.shift} onChange={e => setForm({ ...form, shift: e.target.value })}>
             {SHIFTS.map(s => (
               <option key={s.value} value={s.value}>
-                {s.label}{s.value === detectShift() ? " ← current" : ""}
+                {s.label}{s.value === detectedShift ? " ← current" : ""}
               </option>
             ))}
           </select>
@@ -154,12 +176,22 @@ export default function Rolls() {
             <button onClick={openRoll} disabled={submitting} style={btnStyle}>
               {submitting ? "Opening..." : "Open Roll"}
             </button>
-            <button onClick={() => { setShowForm(false); setForm({ machine_id: "", shift: detectShift() }); }} style={cancelBtnStyle}>Cancel</button>
+            <button onClick={() => { setShowForm(false); setForm({ machine_id: "", shift: detectedShift }); }} style={cancelBtnStyle}>Cancel</button>
           </div>
         </div>
       )}
 
       {/* Rolls Table */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+        <span style={{ color: "#7da2d6", fontSize: "13px" }}>{total.toLocaleString()} total rolls</span>
+        {pages > 1 && (
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <PgBtn label="‹" onClick={() => goTo(page - 1)} disabled={page === 1} />
+            <span style={{ color: "#FFD700", fontSize: "13px", fontWeight: "bold" }}>Page {page}/{pages}</span>
+            <PgBtn label="›" onClick={() => goTo(page + 1)} disabled={page === pages} />
+          </div>
+        )}
+      </div>
       {rolls.length === 0 ? (
         <div style={{ color: "#7da2d6", textAlign: "center", padding: "60px 0", fontSize: 16 }}>
           No rolls yet. Click <strong style={{ color: "#FFD700" }}>+ Open New Roll</strong> to start.
@@ -203,13 +235,37 @@ export default function Rolls() {
                     }}>{roll.status}</span>
                   </td>
                   <td style={td}>
-                    {roll.status === "OPEN" ? (
-                      <button onClick={() => approveRoll(roll.roll_id, weights[roll.roll_id])} style={{ background: "#22c55e", border: "none", padding: "6px 14px", color: "white", borderRadius: 5, cursor: "pointer", fontWeight: "bold" }}>
-                        Approve
-                      </button>
-                    ) : (
-                      <span style={{ color: "#60a5fa" }}>✓ Done</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    {roll.status === "OPEN" && (
+                      <>
+                        <button onClick={() => approveRoll(roll.roll_id, weights[roll.roll_id])} style={{ background: "#22c55e", border: "none", padding: "6px 14px", color: "white", borderRadius: 5, cursor: "pointer", fontWeight: "bold" }}>
+                          Approve
+                        </button>
+                        <button onClick={async () => { if (!window.confirm("Delete this OPEN roll?")) return; const token = localStorage.getItem("dhown_token"); await fetch(`${API}/api/rolls/${roll.roll_id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }); window.location.reload(); }}
+                          style={{ background: "#dc2626", border: "none", padding: "6px 10px", color: "white", borderRadius: 5, cursor: "pointer", fontWeight: "bold", fontSize: 12 }}>🗑</button>
+                      </>
                     )}
+                    {(roll.status === "APPROVED" || roll.status === "CLOSED") && (
+                      <>
+                        <span style={{ color: "#60a5fa" }}>✓ Done</span>
+                        {roll.qr_image && (
+                          <img src={roll.qr_image} alt="QR" title={`Roll QR: ${roll.roll_id}`} style={{ width: 32, height: 32, cursor: "pointer" }}
+                            onClick={() => { const w = window.open(); w.document.write(`<img src="${roll.qr_image}" style="width:300px"/><p style="font-family:monospace;font-size:18px">${roll.roll_id}</p>`); }} />
+                        )}
+                        {roll.warehouse_status !== 'SENT_OUT' && roll.warehouse_status !== 'DISPATCHED' && (<>
+                          <button onClick={() => { setEditRoll(roll); setEditWeight(roll.actual_weight_kg || ""); }}
+                            style={{ background: "#3b82f6", border: "none", padding: "4px 8px", color: "white", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: "bold" }}>✎ Edit</button>
+                          <button onClick={async () => { if (!window.confirm("Cancel this roll?")) return; const token = localStorage.getItem("dhown_token"); const r = await fetch(`${API}/api/rolls/${roll.roll_id}/cancel`, { method: "PUT", headers: { Authorization: `Bearer ${token}` } }); if (!r.ok) { const e = await r.json(); alert(e.error); return; } window.location.reload(); }}
+                            style={{ background: "#ef4444", border: "none", padding: "4px 8px", color: "white", borderRadius: 5, cursor: "pointer", fontSize: 11 }}>Cancel</button>
+                        </>)}
+                      </>
+                    )}
+                    {roll.status === "CANCELLED" && (<>
+                      <span style={{ color: "#ef4444" }}>Cancelled</span>
+                      <button onClick={async () => { if (!window.confirm("Permanently delete this cancelled roll?")) return; const token = localStorage.getItem("dhown_token"); const r = await fetch(`${API}/api/rolls/${roll.roll_id}/permanent`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }); if (!r.ok) { const e = await r.json(); alert(e.error); return; } window.location.reload(); }}
+                        style={{ background: "#dc2626", border: "none", padding: "4px 8px", color: "white", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: "bold" }}>🗑 Delete</button>
+                    </>)}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -217,7 +273,50 @@ export default function Rolls() {
           </table>
         </div>
       )}
+
+      {/* Edit Roll Modal */}
+      {editRoll && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={() => setEditRoll(null)}>
+          <div style={{ background: "#0d1b2f", border: "1px solid #1e3a5f", borderRadius: 12, padding: 24, minWidth: 400 }}
+            onClick={e => e.stopPropagation()}>
+            <h3 style={{ color: "#FFD700", marginTop: 0 }}>Edit Roll Weight</h3>
+            <p style={{ color: "#9ca3af", fontSize: 13 }}>Roll: <strong style={{ color: "#e2e8f0" }}>{editRoll.roll_id}</strong></p>
+            <p style={{ color: "#9ca3af", fontSize: 13 }}>Machine: {editRoll.machine_id} | Fabric: {editRoll.fabric_type}</p>
+            <label style={{ color: "#7da2d6", fontSize: 12 }}>Weight (kg)</label>
+            <input type="number" step="0.001" value={editWeight} onChange={e => setEditWeight(e.target.value)}
+              style={{ display: "block", width: "100%", background: "#050d1a", border: "1px solid #16345d", color: "#fff", padding: "10px 12px", borderRadius: 6, fontSize: 14, marginTop: 4, marginBottom: 16, boxSizing: "border-box" }} />
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => setEditRoll(null)}
+                style={{ background: "#1e3a5f", color: "#9ca3af", border: "none", padding: "8px 16px", borderRadius: 6, cursor: "pointer" }}>Cancel</button>
+              <button onClick={async () => {
+                if (!editWeight) { alert("Enter weight"); return; }
+                const token = localStorage.getItem("dhown_token");
+                const r = await fetch(`${API}/api/rolls/${editRoll.roll_id}`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                  body: JSON.stringify({ actual_weight_kg: parseFloat(editWeight) }),
+                });
+                if (!r.ok) { const e = await r.json(); alert(e.error); return; }
+                setEditRoll(null);
+                window.location.reload();
+              }}
+                style={{ background: "#22c55e", color: "#fff", border: "none", padding: "8px 20px", borderRadius: 6, cursor: "pointer", fontWeight: "bold" }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function PgBtn({ label, onClick, disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled} style={{
+      background: disabled ? "#0d1b2f" : "#FFD700", color: disabled ? "#455a7c" : "#000",
+      border: "1px solid #23395d", padding: "5px 12px", borderRadius: "5px",
+      cursor: disabled ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "13px",
+    }}>{label}</button>
   );
 }
 

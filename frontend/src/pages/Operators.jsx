@@ -50,6 +50,7 @@ const Operators = () => {
   const [operators, setOperators] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
+  const [activeTab, setActiveTab] = useState("operators");
   const [newOp, setNewOp] = useState(EMPTY_NEW);
   const [editingOp, setEditingOp] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -193,10 +194,24 @@ const Operators = () => {
       }}
     >
       <h1 style={{ color: "#f4ae1f", marginBottom: "6px" }}>OPERATOR MASTER</h1>
-      <p style={{ color: "#7da2d6", marginBottom: "20px", fontSize: "15px" }}>
-        {activeCount} active
-        {inactiveCount > 0 && ` · ${inactiveCount} inactive`}
+      <p style={{ color: "#7da2d6", marginBottom: "14px", fontSize: "15px" }}>
+        {activeCount} active{inactiveCount > 0 && ` · ${inactiveCount} inactive`}
       </p>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+        {[{ key: "operators", label: "Operators" }, { key: "attendance", label: "Attendance" }].map(t => (
+          <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
+            padding: "8px 20px", borderRadius: "6px", border: "none", cursor: "pointer", fontWeight: "bold", fontSize: "14px",
+            background: activeTab === t.key ? "#f4ae1f" : "#0d1b2f",
+            color: activeTab === t.key ? "black" : "#7da2d6",
+          }}>{t.label}</button>
+        ))}
+      </div>
+
+      {activeTab === "attendance" && <AttendanceTab />}
+      {activeTab !== "attendance" && <>
+
 
       {/* Message Banner */}
       {msg && (
@@ -718,8 +733,108 @@ const Operators = () => {
           </div>
         </div>
       )}
+      </>}
     </div>
   );
 };
+
+function AttendanceTab() {
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [shift, setShift] = useState("");
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const p = new URLSearchParams({ date });
+      if (shift) p.set("shift", shift);
+      const r = await fetch(`http://localhost:4000/api/attendance?${p}`);
+      setRecords(await r.json());
+    } catch {}
+    finally { setLoading(false); }
+  }, [date, shift]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const th = { padding: "10px 8px", textAlign: "left", color: "#f4ae1f", fontSize: "13px", borderBottom: "2px solid #16345d" };
+  const td = { padding: "10px 8px", borderBottom: "1px solid rgba(22,52,93,0.4)", fontSize: "14px" };
+
+  const present = records.length;
+  const dayShift = records.filter(r => r.shift === "D").length;
+  const nightShift = records.filter(r => r.shift === "N").length;
+
+  return (
+    <div>
+      {/* KPI */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "14px", marginBottom: "20px" }}>
+        {[
+          { label: "Present Today", value: present, color: "#22c55e" },
+          { label: "Day Shift (D)", value: dayShift, color: "#fbbf24" },
+          { label: "Night Shift (N)", value: nightShift, color: "#818cf8" },
+        ].map(k => (
+          <div key={k.label} style={{ background: "#081426", border: "1px solid #16345d", borderRadius: "10px", padding: "16px", textAlign: "center" }}>
+            <div style={{ fontSize: "28px", fontWeight: "bold", color: k.color }}>{k.value}</div>
+            <div style={{ fontSize: "12px", color: "#7da2d6", marginTop: "4px" }}>{k.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
+        <input type="date" value={date} onChange={e => setDate(e.target.value)}
+          style={{ padding: "8px 10px", background: "#0d1b2f", color: "white", border: "1px solid #16345d", borderRadius: "6px", fontSize: "14px" }} />
+        <select value={shift} onChange={e => setShift(e.target.value)}
+          style={{ padding: "8px 10px", background: "#0d1b2f", color: "white", border: "1px solid #16345d", borderRadius: "6px", fontSize: "14px" }}>
+          <option value="">All Shifts</option>
+          <option value="D">Day (D)</option>
+          <option value="N">Night (N)</option>
+        </select>
+        <button onClick={load} style={{ background: "#f4ae1f", color: "black", border: "none", padding: "8px 18px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>
+          Refresh
+        </button>
+      </div>
+
+      {/* Table */}
+      <div style={{ background: "#071120", border: "1px solid #16345d", borderRadius: "12px", overflowX: "auto" }}>
+        <table width="100%" style={{ borderCollapse: "collapse", minWidth: "700px" }}>
+          <thead>
+            <tr>
+              {["Operator", "Shift", "Clock In", "Last Seen", "Scans", "Status"].map(h => (
+                <th key={h} style={th}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loading && <tr><td colSpan="6" style={{ padding: "24px", textAlign: "center", color: "#7da2d6" }}>Loading...</td></tr>}
+            {!loading && records.length === 0 && (
+              <tr><td colSpan="6" style={{ padding: "24px", textAlign: "center", color: "#7da2d6", fontStyle: "italic" }}>
+                No attendance records for {date}{shift ? ` (${shift === "D" ? "Day" : "Night"} shift)` : ""}. Records are created automatically when operators scan their RFID.
+              </td></tr>
+            )}
+            {records.map(r => (
+              <tr key={r.attendance_id}>
+                <td style={{ ...td, fontWeight: "bold", color: "#f4ae1f" }}>{r.operator_name}</td>
+                <td style={td}>
+                  <span style={{ background: r.shift === "D" ? "rgba(251,191,36,0.2)" : "rgba(129,140,248,0.2)", color: r.shift === "D" ? "#fbbf24" : "#818cf8", padding: "2px 10px", borderRadius: "4px", fontSize: "13px", fontWeight: "bold" }}>
+                    {r.shift === "D" ? "☀ Day" : "🌙 Night"}
+                  </span>
+                </td>
+                <td style={{ ...td, color: "#22c55e" }}>{r.clock_in ? new Date(r.clock_in).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) : "—"}</td>
+                <td style={{ ...td, color: "#7da2d6" }}>{r.last_seen ? new Date(r.last_seen).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) : "—"}</td>
+                <td style={{ ...td, color: "#60a5fa" }}>{r.scan_count}</td>
+                <td style={td}>
+                  <span style={{ background: "rgba(34,197,94,0.15)", color: "#22c55e", padding: "2px 10px", borderRadius: "4px", fontSize: "13px", fontWeight: "bold" }}>
+                    {r.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 export default Operators;

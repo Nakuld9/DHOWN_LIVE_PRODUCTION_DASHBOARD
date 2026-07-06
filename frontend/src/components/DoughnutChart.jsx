@@ -26,11 +26,11 @@ const DoughnutChart = () => {
     { label: "Running",  value: kpis.running  || 0, color: "#22c55e" },
     { label: "Stopped",  value: kpis.stopped  || 0, color: "#ef4444" },
     { label: "Offline",  value: kpis.offline  || 0, color: "#f59e0b" },
-    { label: "No Data",  value: kpis.noData   || 0, color: "#6366f1" },
+    { label: "Collector Offline",  value: kpis.noData   || 0, color: "#6366f1" },
   ] : [];
 
   return (
-    <div style={{ background: "#0d1b2f", borderRadius: "12px", padding: "20px", color: "white", border: "1px solid #16345d" }}>
+    <div style={{ background: "#161B22", borderRadius: "12px", padding: "20px", color: "white", border: "1px solid #30363d" }}>
       <h3 style={{ margin: "0 0 14px" }}>Machine Status Breakdown</h3>
 
       {!kpis ? (

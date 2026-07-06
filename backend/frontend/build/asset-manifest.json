@@ -1,0 +1,20 @@
+{
+  "files": {
+    "main.css": "/static/css/main.9f36a5bf.css",
+    "main.js": "/static/js/main.d613a411.js",
+    "static/js/239.15351f31.chunk.js": "/static/js/239.15351f31.chunk.js",
+    "static/js/977.22bf0d37.chunk.js": "/static/js/977.22bf0d37.chunk.js",
+    "static/js/455.c58b826b.chunk.js": "/static/js/455.c58b826b.chunk.js",
+    "static/media/dhown-logo.png": "/static/media/dhown-logo.7f92502108d2f8211ba3.png",
+    "index.html": "/index.html",
+    "main.9f36a5bf.css.map": "/static/css/main.9f36a5bf.css.map",
+    "main.d613a411.js.map": "/static/js/main.d613a411.js.map",
+    "239.15351f31.chunk.js.map": "/static/js/239.15351f31.chunk.js.map",
+    "977.22bf0d37.chunk.js.map": "/static/js/977.22bf0d37.chunk.js.map",
+    "455.c58b826b.chunk.js.map": "/static/js/455.c58b826b.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9f36a5bf.css",
+    "static/js/main.d613a411.js"
+  ]
+}

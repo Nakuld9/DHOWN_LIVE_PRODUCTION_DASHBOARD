@@ -25,7 +25,7 @@ export default function ProductionLeaderboard() {
   const medalColor = ["#FFD700", "#C0C0C0", "#CD7F32", "#7da2d6", "#7da2d6"];
 
   return (
-    <div style={{ background: "#071120", border: "1px solid #16345d", borderRadius: "10px", padding: "15px", marginTop: "15px" }}>
+    <div style={{ background: "#161B22", border: "1px solid #30363d", borderRadius: "10px", padding: "15px", marginTop: "15px" }}>
       <h3 style={{ color: "#FFD700", marginBottom: "15px", margin: "0 0 15px" }}>Top Machines Today</h3>
 
       {loading ? (

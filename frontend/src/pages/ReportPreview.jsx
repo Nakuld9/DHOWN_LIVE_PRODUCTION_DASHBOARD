@@ -23,8 +23,9 @@ const REPORT_META = {
   rfid:        { name: 'RFID Activity Report',      icon: '📡' },
   assignments:     { name: 'Assignment Report',         icon: '🔗' },
   summary:         { name: 'Factory Summary Report',    icon: '🏭' },
-  maintenance:     { name: 'Maintenance Report',        icon: '🔧' },
-  'shift-handover':{ name: 'Shift Handover Report',    icon: '📝' },
+  maintenance:      { name: 'Maintenance Report',         icon: '🔧' },
+  'shift-handover': { name: 'Shift Handover Report',     icon: '📝' },
+  'daily-summary':  { name: 'Daily Production Summary',  icon: '📅' },
 };
 
 // PDF brand colors
@@ -287,6 +288,47 @@ async function buildPDF(type, reportName, data, filters) {
         r.issues || '—',
         r.actions_taken || '—',
         r.pending_actions || '—',
+      ]),
+    });
+  }
+
+  else if (type === 'daily-summary') {
+    const ro = data.rolls || {}; const dt = data.downtime || {}; const at = data.attendance || {};
+    doc.setFillColor(8, 24, 48);
+    doc.roundedRect(M, y, W - 2 * M, 18, 2, 2, 'F');
+    doc.setTextColor(...C.gold); doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+    const cw4 = (W - 2 * M) / 4;
+    ['Total Production', 'Rolls Approved', 'Downtime (hrs)', 'Operators'].forEach((lbl, i) =>
+      doc.text(lbl, M + cw4 * i + cw4 / 2, y + 6, { align: 'center' })
+    );
+    doc.setTextColor(255, 255, 255); doc.setFontSize(11);
+    [
+      fmtNum(ro.total_kg, 3) + ' kg',
+      String(ro.approved || 0),
+      fmtNum(dt.total_downtime_hrs, 2),
+      String(at.total_operators || 0),
+    ].forEach((v, i) => doc.text(v, M + cw4 * i + cw4 / 2, y + 13, { align: 'center' }));
+    y += 24;
+
+    doc.setTextColor(...C.gold); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text('MACHINE-WISE SUMMARY', M, y); y += 4;
+    autoTable(doc, { startY: y, ...tStyle,
+      head: [['Machine', 'Name', 'Fabric', 'Prod KG', 'Rolls', 'OEE %', 'Avail %', 'Perf %']],
+      body: (data.machines || []).map(r => [
+        r.machine_id, r.machine_name || '—', r.fabric || '—',
+        fmtNum(r.production_kg, 3), r.rolls_approved || 0,
+        fmtNum(r.avg_oee), fmtNum(r.avg_availability), fmtNum(r.avg_performance),
+      ]),
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    doc.setTextColor(...C.gold); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text('SHIFT TOTALS', M, y); y += 4;
+    autoTable(doc, { startY: y, ...tStyle,
+      head: [['Shift', 'Production KG', 'Rolls Approved', 'Machines Active']],
+      body: (data.shifts || []).map(r => [
+        r.shift === 'D' ? 'Day' : r.shift === 'N' ? 'Night' : r.shift,
+        fmtNum(r.production_kg, 3), r.rolls_approved || 0, r.machines_active || 0,
       ]),
     });
   }
@@ -608,6 +650,73 @@ function RenderShiftHandover({ data }) {
   );
 }
 
+function RenderDailySummary({ data }) {
+  const ro = data.rolls || {}; const dt = data.downtime || {}; const at = data.attendance || {};
+  const date = data.date || new Date().toISOString().slice(0, 10);
+  return (
+    <>
+      <div style={{ color: '#FFD700', fontSize: '13px', marginBottom: '16px', fontWeight: 'bold' }}>
+        Date: {new Date(date + 'T12:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
+        <SummaryCard label="TOTAL PRODUCTION"   value={fmtNum(ro.total_kg, 3) + ' kg'}    accent="#22c55e" />
+        <SummaryCard label="ROLLS APPROVED"      value={ro.approved || 0}                   accent="#FFD700" />
+        <SummaryCard label="DOWNTIME HRS"        value={fmtNum(dt.total_downtime_hrs, 2)}   accent="#ef4444" />
+        <SummaryCard label="OPERATORS PRESENT"   value={at.total_operators || 0}            accent="#60a5fa" />
+      </div>
+
+      <div style={{ display: 'flex', gap: '14px', marginBottom: '24px' }}>
+        <div style={{ background: '#081830', border: '1px solid #344a6c', borderRadius: '8px', padding: '14px 22px', flex: 1 }}>
+          <div style={{ color: '#fbbf24', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}>☀ DAY SHIFT OPERATORS</div>
+          <div style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>{at.day_shift_ops || 0}</div>
+        </div>
+        <div style={{ background: '#081830', border: '1px solid #344a6c', borderRadius: '8px', padding: '14px 22px', flex: 1 }}>
+          <div style={{ color: '#818cf8', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}>🌙 NIGHT SHIFT OPERATORS</div>
+          <div style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>{at.night_shift_ops || 0}</div>
+        </div>
+        <div style={{ background: '#081830', border: '1px solid #344a6c', borderRadius: '8px', padding: '14px 22px', flex: 1 }}>
+          <div style={{ color: '#f59e0b', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}>DOWNTIME EVENTS</div>
+          <div style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>{dt.total_events || 0}</div>
+        </div>
+        <div style={{ background: '#081830', border: '1px solid #344a6c', borderRadius: '8px', padding: '14px 22px', flex: 1 }}>
+          <div style={{ color: '#f87171', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}>MACHINES AFFECTED</div>
+          <div style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>{dt.machines_affected || 0}</div>
+        </div>
+      </div>
+
+      {(data.shifts || []).length > 0 && (
+        <>
+          <h3 style={{ color: '#FFD700', fontSize: '13px', marginBottom: '12px', letterSpacing: 1 }}>SHIFT TOTALS</h3>
+          <Table
+            head={['Shift', 'Production KG', 'Rolls Approved', 'Machines Active']}
+            rows={(data.shifts || []).map(r => [
+              { val: r.shift === 'D' ? '☀ Day' : '🌙 Night', color: r.shift === 'D' ? '#fbbf24' : '#818cf8' },
+              fmtNum(r.production_kg, 3) + ' kg',
+              r.rolls_approved || 0,
+              r.machines_active || 0,
+            ])}
+          />
+        </>
+      )}
+
+      <h3 style={{ color: '#FFD700', fontSize: '13px', margin: '24px 0 12px', letterSpacing: 1 }}>PER-MACHINE BREAKDOWN</h3>
+      <Table
+        head={['Machine', 'Name', 'Fabric', 'Production KG', 'Rolls', 'OEE %', 'Avail %', 'Perf %']}
+        rows={(data.machines || []).map(r => [
+          r.machine_id,
+          r.machine_name || '—',
+          r.fabric || '—',
+          { val: fmtNum(r.production_kg, 3) + ' kg', color: parseFloat(r.production_kg) > 0 ? '#22c55e' : '#9ca3af' },
+          r.rolls_approved || 0,
+          fmtNum(r.avg_oee) + '%',
+          fmtNum(r.avg_availability) + '%',
+          fmtNum(r.avg_performance) + '%',
+        ])}
+      />
+    </>
+  );
+}
+
 const RENDERERS = {
   production:       RenderProduction,
   rolls:            RenderRolls,
@@ -620,6 +729,7 @@ const RENDERERS = {
   summary:          RenderSummary,
   maintenance:      RenderMaintenance,
   'shift-handover': RenderShiftHandover,
+  'daily-summary':  RenderDailySummary,
 };
 
 // ─── Main Component ──────────────────────────────────────────────────
@@ -650,12 +760,16 @@ export default function ReportPreview() {
     setLoading(true); setError('');
     try {
       const p = new URLSearchParams();
-      if (f.from)     p.set('from',     f.from);
-      if (f.to)       p.set('to',       f.to);
-      if (f.shift)    p.set('shift',    f.shift);
-      if (f.machine)  p.set('machine',  f.machine);
-      if (f.operator) p.set('operator', f.operator);
-      if (f.fabric)   p.set('fabric',   f.fabric);
+      if (type === 'daily-summary') {
+        p.set('date', f.to || new Date().toISOString().slice(0, 10));
+      } else {
+        if (f.from)     p.set('from',     f.from);
+        if (f.to)       p.set('to',       f.to);
+        if (f.shift)    p.set('shift',    f.shift);
+        if (f.machine)  p.set('machine',  f.machine);
+        if (f.operator) p.set('operator', f.operator);
+        if (f.fabric)   p.set('fabric',   f.fabric);
+      }
 
       const res = await fetch(`http://localhost:4000/api/reports/${type}?${p.toString()}`);
       if (!res.ok) throw new Error(`Server error: ${res.status}`);

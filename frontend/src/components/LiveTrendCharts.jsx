@@ -126,11 +126,11 @@ export default function LiveTrendCharts({ machines = [] }) {
   return (
     <div
       style={{
-        background: "#071120",
-        border: "1px solid #16345d",
+        background: "#161B22",
+        border: "1px solid #30363d",
         borderRadius: "12px",
         padding: "16px",
-        marginTop: "20px",
+        marginTop: "0",
       }}
     >
       {/* Header */}

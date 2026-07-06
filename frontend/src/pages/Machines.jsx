@@ -70,6 +70,7 @@ const Machines = () => {
               <th style={{ padding: "10px 8px", textAlign: "left" }}>DC ID</th>
               <th style={{ padding: "10px 8px", textAlign: "left" }}>RPM Target</th>
               <th style={{ padding: "10px 8px", textAlign: "left" }}>KG/Counter</th>
+              <th style={{ padding: "10px 8px", textAlign: "left" }}>Operator</th>
               <th style={{ padding: "10px 8px", textAlign: "left" }}>Status</th>
               <th style={{ padding: "10px 8px", textAlign: "left" }}>Alert</th>
             </tr>
@@ -91,6 +92,11 @@ const Machines = () => {
                 <td style={{ padding: "10px 8px" }}>{m.rpm_target || "—"}</td>
                 <td style={{ padding: "10px 8px", fontSize: "14px" }}>
                   {m.kg_per_counter ? Number(m.kg_per_counter).toFixed(5) : "—"}
+                </td>
+                <td style={{ padding: "10px 8px" }}>
+                  {m.assigned_operator
+                    ? <span style={{ color: "#22c55e", fontWeight: "bold", fontSize: 13 }}>{m.assigned_operator}</span>
+                    : <span style={{ color: "#6b7280", fontSize: 13 }}>—</span>}
                 </td>
                 <td style={{ padding: "10px 8px" }}>
                   <span style={{

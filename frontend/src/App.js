@@ -24,6 +24,28 @@ import TVDashboard from "./pages/TVDashboard";
 import UserManagement from "./pages/UserManagement";
 import MaintenanceSchedule from "./pages/MaintenanceSchedule";
 import ShiftHandover from "./pages/ShiftHandover";
+import WarehouseOverview from "./pages/WarehouseOverview";
+import GreigeWarehouse from "./pages/GreigeWarehouse";
+import Batching from "./pages/Batching";
+import Subcontracting from "./pages/Subcontracting";
+import FinishedGoods from "./pages/FinishedGoods";
+import Dispatch from "./pages/Dispatch";
+import GRN from "./pages/GRN";
+import YarnStore from "./pages/YarnStore";
+import YarnIssue from "./pages/YarnIssue";
+import Finishing from "./pages/Finishing";
+import QualityInspection from "./pages/QualityInspection";
+import Traceability from "./pages/Traceability";
+import InventoryReports from "./pages/InventoryReports";
+import Costing from "./pages/Costing";
+import ItemMaster from "./pages/ItemMaster";
+import Partners from "./pages/Partners";
+import AdminMasters from "./pages/AdminMasters";
+import StockStatement from "./pages/StockStatement";
+import WorkCenterStock from "./pages/WorkCenterStock";
+import GSTReport from "./pages/GSTReport";
+import OpeningBalances from "./pages/OpeningBalances";
+import MasterDashboard from "./pages/MasterDashboard";
 
 function RequireAuth({ children }) {
   const location = useLocation();
@@ -41,6 +63,7 @@ function App() {
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/tv-dashboard" element={<TVDashboard />} />
+        <Route path="/command-center" element={<RequireAuth><MasterDashboard /></RequireAuth>} />
 
         {/* All protected routes — with sidebar */}
         <Route path="*" element={
@@ -68,6 +91,27 @@ function App() {
                   <Route path="/users"        element={<UserManagement />} />
                   <Route path="/maintenance-schedule" element={<MaintenanceSchedule />} />
                   <Route path="/shift-handover"       element={<ShiftHandover />} />
+                  <Route path="/warehouse"            element={<WarehouseOverview />} />
+                  <Route path="/grn"                  element={<GRN />} />
+                  <Route path="/yarn-store"           element={<YarnStore />} />
+                  <Route path="/yarn-issue"           element={<YarnIssue />} />
+                  <Route path="/greige"               element={<GreigeWarehouse />} />
+                  <Route path="/batching"             element={<Batching />} />
+                  <Route path="/subcontracting"       element={<Subcontracting />} />
+                  <Route path="/finishing"            element={<Finishing />} />
+                  <Route path="/quality-inspection"   element={<QualityInspection />} />
+                  <Route path="/traceability"         element={<Traceability />} />
+                  <Route path="/inventory-reports"    element={<InventoryReports />} />
+                  <Route path="/costing"              element={<Costing />} />
+                  <Route path="/finished-goods"       element={<FinishedGoods />} />
+                  <Route path="/dispatch"             element={<Dispatch />} />
+                  <Route path="/items"               element={<ItemMaster />} />
+                  <Route path="/partners"            element={<Partners />} />
+                  <Route path="/admin/masters"       element={<AdminMasters />} />
+                  <Route path="/stock-statement"     element={<StockStatement />} />
+                  <Route path="/work-center-stock"   element={<WorkCenterStock />} />
+                  <Route path="/gst-report"          element={<GSTReport />} />
+                  <Route path="/opening-balances"   element={<OpeningBalances />} />
                 </Routes>
               </div>
             </div>

@@ -13,6 +13,17 @@ export default function Assignments() {
   const [operatorId, setOperatorId] = useState("");
   const [machineId, setMachineId] = useState("");
 
+  const releaseAssignment = async (id) => {
+    if (!window.confirm("Release this operator from machine?")) return;
+    try {
+      await fetch(`http://localhost:4000/api/assignments/${id}/release`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${localStorage.getItem("dhown_token") || ""}` },
+      });
+      loadAssignments();
+    } catch (err) { console.error(err); }
+  };
+
   const loadAssignments = async () => {
     try {
       const res = await fetch("http://localhost:4000/api/assignments");
@@ -62,6 +73,7 @@ export default function Assignments() {
           headers: {
             "Content-Type":
               "application/json",
+            Authorization: `Bearer ${localStorage.getItem("dhown_token") || ""}`,
           },
           body: JSON.stringify({
             operator_id: operatorId,
@@ -256,15 +268,18 @@ export default function Assignments() {
               <th align="left">
                 Status
               </th>
+              <th align="left">
+                Actions
+              </th>
             </tr>
           </thead>
 
           <tbody>
             {loading && (
-              <tr><td colSpan="5" style={{ padding: "24px", color: "#7da2d6", textAlign: "center" }}>Loading assignments...</td></tr>
+              <tr><td colSpan="6" style={{ padding: "24px", color: "#7da2d6", textAlign: "center" }}>Loading assignments...</td></tr>
             )}
             {!loading && !error && assignments.length === 0 && (
-              <tr><td colSpan="5" style={{ padding: "24px", color: "#7da2d6", fontStyle: "italic", textAlign: "center" }}>No assignments found. Assign an operator to get started.</td></tr>
+              <tr><td colSpan="6" style={{ padding: "24px", color: "#7da2d6", fontStyle: "italic", textAlign: "center" }}>No assignments found. Assign an operator to get started.</td></tr>
             )}
             {assignments.map(
               (row) => (
@@ -330,6 +345,14 @@ export default function Assignments() {
                     >
                       {row.status}
                     </span>
+                  </td>
+                  <td>
+                    {row.status === "ACTIVE" && (
+                      <button onClick={() => releaseAssignment(row.assignment_id)}
+                        style={{ background: "#dc2626", color: "#fff", border: "none", padding: "6px 14px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}>
+                        Release
+                      </button>
+                    )}
                   </td>
                 </tr>
               )

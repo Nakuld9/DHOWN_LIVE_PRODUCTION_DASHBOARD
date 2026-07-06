@@ -4,17 +4,17 @@ const KPICard = ({ title, value, color, sub }) => (
   <div
     style={{
       background: "#0d1b2f",
-      padding: "16px 20px",
-      borderRadius: "12px",
+      padding: "10px 14px",
+      borderRadius: "10px",
       border: "1px solid #16345d",
       color: "white",
     }}
   >
-    <p style={{ color: "#7da2d6", marginBottom: "8px", fontSize: "12px", fontWeight: "600" }}>
+    <p style={{ color: "#7da2d6", marginBottom: "4px", fontSize: "11px", fontWeight: "600", letterSpacing: 0.5 }}>
       {title}
     </p>
-    <h2 style={{ color, margin: 0, fontSize: "22px" }}>{value}</h2>
-    {sub && <p style={{ color: "#6b7280", fontSize: "11px", marginTop: "4px", marginBottom: 0 }}>{sub}</p>}
+    <h2 style={{ color, margin: 0, fontSize: "20px" }}>{value}</h2>
+    {sub && <p style={{ color: "#6b7280", fontSize: "10px", marginTop: "3px", marginBottom: 0 }}>{sub}</p>}
   </div>
 );
 
@@ -23,8 +23,9 @@ const KPICards = ({ machines = [] }) => {
 
   const running    = machines.filter((m) => m.live_status === "RUNNING").length;
   const inDowntime = machines.filter((m) => m.live_status === "DOWNTIME").length;
-  const offline    = machines.filter(
-    (m) => m.live_status === "OFFLINE" || m.live_status === "STOPPED" || m.live_status === "NO_DATA"
+  const stopped    = machines.filter((m) => m.live_status === "STOPPED").length;
+  const collectorOffline = machines.filter(
+    (m) => m.live_status === "OFFLINE" || m.live_status === "NO_DATA"
   ).length;
 
   const allNoData =
@@ -49,11 +50,12 @@ const KPICards = ({ machines = [] }) => {
   );
 
   const row1 = [
-    { title: "TOTAL MACHINES",    value: totalMachines,                         color: "#7da2d6" },
-    { title: "RUNNING MACHINES",  value: running,                               color: "#22c55e" },
-    { title: "IN DOWNTIME",       value: inDowntime,                            color: inDowntime > 0 ? "#dc2626" : "#7da2d6" },
-    { title: "OFFLINE / STOPPED", value: offline,                               color: offline > 0 ? "#f59e0b" : "#7da2d6" },
-    { title: "EFFICIENCY",        value: efficiencyDisplay,                     color: "#7da2d6" },
+    { title: "TOTAL MACHINES",      value: totalMachines,      color: "#7da2d6" },
+    { title: "RUNNING",             value: running,            color: "#22c55e" },
+    { title: "DOWNTIME",            value: inDowntime,         color: inDowntime > 0 ? "#dc2626" : "#7da2d6" },
+    { title: "STOPPED",             value: stopped,            color: stopped > 0 ? "#f59e0b" : "#7da2d6" },
+    { title: "COLLECTOR OFFLINE",   value: collectorOffline,   color: collectorOffline > 0 ? "#6b7280" : "#7da2d6" },
+    { title: "EFFICIENCY",          value: efficiencyDisplay,  color: "#7da2d6" },
   ];
 
   const row2 = [
@@ -83,9 +85,9 @@ const KPICards = ({ machines = [] }) => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(5,1fr)",
-          gap: "12px",
-          marginBottom: "12px",
+          gridTemplateColumns: "repeat(6,1fr)",
+          gap: "10px",
+          marginBottom: "10px",
         }}
       >
         {row1.map((card) => (
@@ -98,7 +100,7 @@ const KPICards = ({ machines = [] }) => {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3,1fr)",
-          gap: "12px",
+          gap: "10px",
         }}
       >
         {row2.map((card) => (

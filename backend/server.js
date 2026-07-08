@@ -2018,38 +2018,10 @@ app.get("/api/active-operators", async (req, res) => {
 });
 
 // ==========================
-// SETTINGS API
+// SETTINGS — migrated to layered architecture (src/routes/settings.routes.js)
+// Endpoints unchanged: GET /api/settings (no auth), PUT /api/settings (verifyToken)
 // ==========================
-
-app.get("/api/settings", async (req, res) => {
-  try {
-    const result = await pool.query(`SELECT key, value FROM app_settings ORDER BY key`);
-    const settings = {};
-    result.rows.forEach(row => { settings[row.key] = row.value; });
-    res.json(settings);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.put("/api/settings", verifyToken, async (req, res) => {
-  try {
-    const updates = req.body;
-    for (const [key, value] of Object.entries(updates)) {
-      await pool.query(
-        `INSERT INTO app_settings (key, value, updated_at)
-         VALUES ($1, $2, NOW())
-         ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()`,
-        [key, String(value)]
-      );
-    }
-    res.json({ success: true, message: "Settings saved" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
+app.use('/api/settings', require('./src/routes/settings.routes')({ pool, verifyToken }));
 
 // ==========================
 // MAINTENANCE API

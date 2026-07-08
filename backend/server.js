@@ -528,128 +528,11 @@ app.put('/api/rolls/:rollId/cancel', verifyToken, requireRole('ADMIN'), async (r
 });
 
 // ==========================
-// GET OPERATORS
+// OPERATORS — migrated to layered architecture (src/routes/operators.routes.js)
+// Endpoints unchanged: GET/POST/PUT/DELETE /api/operators[/:id]
+// Shared pool + auth injected so behavior is identical to the former inline handlers.
 // ==========================
-app.get('/api/operators', async (req, res) => {
-  try {
-    const includeInactive = req.query.include_inactive === 'true';
-    const result = await pool.query(
-      `SELECT * FROM operators
-       ${includeInactive ? '' : "WHERE status != 'INACTIVE'"}
-       ORDER BY operator_name`
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to load operators' });
-  }
-});
-
-// ==========================
-// ADD OPERATOR
-// ==========================
-app.post('/api/operators', verifyToken, requireRole('SUPERVISOR'), async (req, res) => {
-
-  const {
-    operator_code,
-    operator_name,
-    rfid_tag,
-    mobile,
-    department,
-    shift,
-    employee_id,
-    join_date,
-    skill_level,
-    emergency_contact
-  } = req.body;
-
-  try {
-
-    const result = await pool.query(
-      `INSERT INTO operators
-       (operator_code, operator_name, rfid_tag, mobile, department, shift, employee_id, join_date, skill_level, emergency_contact)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-       RETURNING *`,
-      [
-        operator_code,
-        operator_name,
-        rfid_tag || null,
-        mobile || null,
-        department || null,
-        shift || null,
-        employee_id || null,
-        join_date || null,
-        skill_level || 'BASIC',
-        emergency_contact || null
-      ]
-    );
-
-    res.json(result.rows[0]);
-
-  } catch (err) {
-
-    console.error(err);
-
-    res.status(500).json({
-      error: err.message
-    });
-
-  }
-
-});
-
-// ==========================
-// EDIT OPERATOR
-// ==========================
-app.put('/api/operators/:id', verifyToken, requireRole('SUPERVISOR'), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { operator_name, rfid_tag, mobile, department, shift, status, employee_id, join_date, skill_level, emergency_contact } = req.body;
-    const existing = await pool.query(`SELECT * FROM operators WHERE operator_id = $1`, [id]);
-    if (existing.rows.length === 0) return res.status(404).json({ error: 'Operator not found' });
-    const cur = existing.rows[0];
-    const r = await pool.query(
-      `UPDATE operators
-       SET operator_name = $1, rfid_tag = $2, mobile = $3, department = $4, shift = $5, status = $6,
-           employee_id = $7, join_date = $8, skill_level = $9, emergency_contact = $10
-       WHERE operator_id = $11
-       RETURNING *`,
-      [
-        operator_name     ?? cur.operator_name,
-        rfid_tag          ?? cur.rfid_tag,
-        mobile            ?? cur.mobile,
-        department        ?? cur.department,
-        shift             ?? cur.shift,
-        status            ?? cur.status,
-        employee_id       !== undefined ? (employee_id || null) : cur.employee_id,
-        join_date         !== undefined ? (join_date || null)   : cur.join_date,
-        skill_level       ?? cur.skill_level,
-        emergency_contact !== undefined ? (emergency_contact || null) : cur.emergency_contact,
-        id
-      ]
-    );
-    res.json(r.rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ==========================
-// DEACTIVATE OPERATOR (soft delete)
-// ==========================
-app.delete('/api/operators/:id', verifyToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const existing = await pool.query(`SELECT * FROM operators WHERE operator_id = $1`, [id]);
-    if (existing.rows.length === 0) return res.status(404).json({ error: 'Operator not found' });
-    await pool.query(`UPDATE operators SET status = 'INACTIVE' WHERE operator_id = $1`, [id]);
-    res.json({ success: true, message: 'Operator deactivated' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
+app.use('/api/operators', require('./src/routes/operators.routes')({ pool, verifyToken, requireRole }));
 
 // ==========================
 // ASSIGNMENTS
@@ -6853,7 +6736,7 @@ app.get('/api/quality-defect-types', verifyToken, requireRole('OPERATOR'), async
     const result = await pool.query(
       'SELECT * FROM defect_types WHERE is_active = true ORDER BY sort_order, name'
     );
-    res.json(result.rows);
+  res.json(dbResult.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -7014,8 +6897,8 @@ app.get('/api/quality-inspection-report/csv', verifyToken, requireRole('OPERATOR
 
     query += ` ORDER BY qi.inspection_date DESC`;
 
-    const result = await pool.query(query, params);
-    const rows = result.rows;
+    const dbResult = await pool.query(query, params);
+    const rows = dbResult.rows;
 
     // Convert to CSV
     const headers = ['Inspection ID', 'Roll ID', 'Machine', 'Inspection Type', 'Grade', 'Inspection Date', 'Inspector', 'Defect Count', 'Result'];
@@ -7088,8 +6971,8 @@ app.get('/api/quality-inspection-report/pdf', verifyToken, requireRole('OPERATOR
 
     query += ` ORDER BY qi.inspection_date DESC`;
 
-    const result = await pool.query(query, params);
-    const rows = result.rows;
+    const dbResult = await pool.query(query, params);
+    const rows = dbResult.rows;
 
     // Create PDF document
     const { PDFDocument } = require('pdfkit');

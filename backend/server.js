@@ -3699,49 +3699,9 @@ app.post("/api/backup", verifyToken, async (req, res) => {
 // FABRIC TYPES
 // ==========================
 
-app.get("/api/fabric-types", async (req, res) => {
-  try {
-    const r = await pool.query(`SELECT * FROM fabric_types ORDER BY code`);
-    res.json(r.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post("/api/fabric-types", verifyToken, async (req, res) => {
-  try {
-    const { code, name, description } = req.body;
-    if (!code || !name) return res.status(400).json({ error: "code and name are required" });
-    const r = await pool.query(
-      `INSERT INTO fabric_types (code, name, description) VALUES ($1, $2, $3) RETURNING *`,
-      [code.toUpperCase().replace(/\s+/g, ''), name, description || null]
-    );
-    res.json(r.rows[0]);
-  } catch (err) {
-    if (err.code === '23505') return res.status(409).json({ error: `Code "${req.body.code}" already exists` });
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.put("/api/fabric-types/:code", verifyToken, async (req, res) => {
-  try {
-    const { name, description } = req.body;
-    const r = await pool.query(
-      `UPDATE fabric_types SET name=$1, description=$2 WHERE code=$3 RETURNING *`,
-      [name, description || null, req.params.code]
-    );
-    if (r.rows.length === 0) return res.status(404).json({ error: "Fabric type not found" });
-    res.json(r.rows[0]);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.delete("/api/fabric-types/:code", verifyToken, async (req, res) => {
-  try {
-    const inUse = await pool.query(`SELECT COUNT(*) FROM machines WHERE fabric_code=$1`, [req.params.code]);
-    if (parseInt(inUse.rows[0].count) > 0)
-      return res.status(409).json({ error: "Cannot delete - fabric is assigned to one or more machines" });
-    await pool.query(`DELETE FROM fabric_types WHERE code=$1`, [req.params.code]);
-    res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
+// FABRIC TYPES — migrated to layered architecture (src/routes/fabric-types.routes.js)
+// Endpoints unchanged: GET (no auth), POST/PUT(:code)/DELETE(:code) (verifyToken)
+app.use('/api/fabric-types', require('./src/routes/fabric-types.routes')({ pool, verifyToken }));
 
 // ==========================
 // PHASE 6 â€" MACHINE SETTINGS

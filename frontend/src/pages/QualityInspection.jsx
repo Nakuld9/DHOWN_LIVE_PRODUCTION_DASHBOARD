@@ -55,10 +55,11 @@ function NavBar({ label, list, selId, idKey, optLabel, onSelect, disabled, onAdd
 }
 
 // ── Inspection Form ──
-function InspectionForm({ inspection, onSave, onCancel, loading, saving, defectTypes, rolls }) {
+function InspectionForm({ inspection, onSave, onCancel, loading, defectTypes, rolls, inspections }) {
   const [form, setForm] = useState(inspection || emptyInspection());
   const [isNew, setIsNew] = useState(!inspection);
   const [showDefectFields, setShowDefectFields] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (inspection) setForm(inspection);
@@ -260,7 +261,7 @@ function InspectionForm({ inspection, onSave, onCancel, loading, saving, defectT
               {defectTypes.map(dt => (
                 <option key={dt.id} value={dt.name}>
                   {dt.name} ({dt.description || ''})
-                </>
+                </option>
               ))}
             </select>
           </div>
@@ -382,7 +383,7 @@ function InspectionListItem({ inspection, onSelect, onEdit, onDelete }) {
       </div>
 
       <div style={{ display: "flex", gap: "8px" }}>
-        <button onClick={(e) => { e.stopPropagation(); onSelect(inspection); }}
+        <button onClick={(e) => { e.stopPropagation(); onSelect(inspection.inspection_id); }}
           style={{ background: "#1e3a5f", color: "#e2e8f0", border: "1px solid #3b4f61", padding: "6px 12px", borderRadius: "4px", cursor: "pointer", fontSize: "12px" }}>
           View
         </button>
@@ -406,7 +407,6 @@ export default function QualityInspection() {
   const [rolls, setRolls] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showStats, setShowStats] = useState(false);
 
@@ -560,9 +560,9 @@ export default function QualityInspection() {
         selId={selectedInspection ? selectedInspection.inspection_id : null}
         idKey="inspection_id"
         optLabel={insp => `#${insp.inspection_id} - ${insp.roll_id} (${insp.inspection_type})`}
-        onSelect=handleSelectInspection
+        onSelect={handleSelectInspection}
         disabled={!!selectedInspection}
-        onAdd=handleAddInspection
+        onAdd={handleAddInspection}
       />
 
       {/* Form Panel (Add/Edit) */}
@@ -572,9 +572,9 @@ export default function QualityInspection() {
           onSave={handleSaveInspection}
           onCancel={() => setSelectedInspection(null)}
           loading={loading}
-          saving={saving}
           defectTypes={defectTypes}
           rolls={rolls}
+          inspections={inspections}
         />
       )}
 
@@ -594,7 +594,7 @@ export default function QualityInspection() {
                   key={inspection.inspection_id}
                   inspection={inspection}
                   onSelect={handleSelectInspection}
-                  onEdit={handleSelectInspection}
+                  onEdit={(inspection) => setSelectedInspection(inspection)}
                   onDelete={handleDeleteInspection}
                 />
               ))}

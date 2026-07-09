@@ -52,6 +52,7 @@ const NAV_GROUPS = [
       { to: "/yarn-store",       label: "Yarn Store",       icon: "🧵" },
       { to: "/greige",           label: "Greige & Lots",    icon: "🧶" },
       { to: "/finished-goods",   label: "Finished Goods",   icon: "✅" },
+      { to: "/vendor-stock",     label: "Vendor Stock",     icon: "🚚" },
       { to: "/traceability",     label: "Traceability",     icon: "🔍" },
       { to: "/costing",          label: "Costing",          icon: "₹" },
       { to: "/gst-report",       label: "GST Report",       icon: "📊" },

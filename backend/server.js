@@ -6434,9 +6434,10 @@ app.get('/api/quality-inspections', verifyToken, requireRole('OPERATOR'), async 
   try {
     const { roll_id, inspection_type, grade, passed, limit = 100 } = req.query;
     let query = `
-      SELECT qi.*, r.roll_id as roll_number, r.machine_name
+      SELECT qi.*, r.roll_id as roll_number, m.machine_name
       FROM quality_inspections qi
       LEFT JOIN rolls r ON qi.roll_id = r.roll_id
+      LEFT JOIN machines m ON r.machine_id = m.machine_id
       WHERE 1=1
     `;
     const params = [];
@@ -6461,20 +6462,43 @@ app.get('/api/quality-inspections', verifyToken, requireRole('OPERATOR'), async 
     query += ` ORDER BY qi.inspection_date DESC LIMIT $${params.length + 1}`;
     params.push(parseInt(limit));
 
-    const result = await client.query(query, params);
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// Get quality inspection by ID
+// Get quality inspection stats (must be registered BEFORE /:id so Express doesn't
+// match "stats" as the :id param)
+app.get('/api/quality-inspections/stats', verifyToken, requireRole('SUPERVISOR'), async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        COUNT(*) as total_inspections,
+        COUNT(CASE WHEN passed = true THEN 1 END) as passed_inspections,
+        COUNT(CASE WHEN passed = false THEN 1 END) as failed_inspections,
+        COUNT(CASE WHEN grade = 'A' THEN 1 END) as grade_a_count,
+        COUNT(CASE WHEN grade = 'B' THEN 1 END) as grade_b_count,
+        COUNT(CASE WHEN grade = 'C' THEN 1 END) as grade_c_count,
+        COUNT(CASE WHEN grade = 'R' THEN 1 END) as grade_r_count,
+        AVG(CASE WHEN defect_count > 0 THEN defect_count END) as avg_defect_count
+      FROM quality_inspections
+      WHERE inspection_date >= CURRENT_DATE - INTERVAL '30 days'
+    `);
+    res.json(result.rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/api/quality-inspections/:id', verifyToken, requireRole('OPERATOR'), async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT qi.*, r.roll_id as roll_number, r.machine_name, r.fabric_type
+      SELECT qi.*, r.roll_id as roll_number, m.machine_name, r.fabric_type
       FROM quality_inspections qi
       LEFT JOIN rolls r ON qi.roll_id = r.roll_id
+      LEFT JOIN machines m ON r.machine_id = m.machine_id
       WHERE qi.inspection_id = $1
     `, [req.params.id]);
 
@@ -6708,29 +6732,7 @@ app.get('/api/quality-defect-types', verifyToken, requireRole('OPERATOR'), async
     const result = await pool.query(
       'SELECT * FROM defect_types WHERE is_active = true ORDER BY sort_order, name'
     );
-  res.json(dbResult.rows);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// Get quality inspection stats
-app.get('/api/quality-inspections/stats', verifyToken, requireRole('SUPERVISOR'), async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT
-        COUNT(*) as total_inspections,
-        COUNT(CASE WHEN passed = true THEN 1 END) as passed_inspections,
-        COUNT(CASE WHEN passed = false THEN 1 END) as failed_inspections,
-        COUNT(CASE WHEN grade = 'A' THEN 1 END) as grade_a_count,
-        COUNT(CASE WHEN grade = 'B' THEN 1 END) as grade_b_count,
-        COUNT(CASE WHEN grade = 'C' THEN 1 END) as grade_c_count,
-        COUNT(CASE WHEN grade = 'R' THEN 1 END) as grade_r_count,
-        AVG(CASE WHEN defect_count > 0 THEN defect_count END) as avg_defect_count
-      FROM quality_inspections
-      WHERE inspection_date >= CURRENT_DATE - INTERVAL '30 days'
-    `);
-    res.json(result.rows[0]);
+    res.json(result.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -7119,8 +7121,18 @@ function callGroq(systemPrompt, userMessage) {
   });
 }
 
-// Alias -- all existing callOllama() calls now go through Groq
-const callOllama = callGroq;
+// AI helper -- NVIDIA GLM-5.2 (primary), src/ai/glm.js
+const { askGLM } = require('./src/ai/glm');
+
+// Primary/fallback -- all existing callOllama() calls try GLM first, then Groq.
+async function callOllama(systemPrompt, userMessage) {
+  try {
+    return await askGLM(`${systemPrompt}\n\n${userMessage}`);
+  } catch (e) {
+    console.error('GLM failed, falling back to Groq:', e.message);
+    return callGroq(systemPrompt, userMessage);
+  }
+}
 
 // â"€â"€ COSTING ENDPOINTS â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 

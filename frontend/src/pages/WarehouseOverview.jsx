@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 const API = 'http://localhost:4000';
 
 const CARD_LINKS = [
-  { key: 'yarn_store',     label: 'YARN STORE',        icon: '🧵', path: '/grn',             color: '#e879f9', subKey: 'lots', subLabel: 'lots', kgKey: 'kg' },
+  { key: 'yarn_store',     label: 'YARN STORE',        icon: '🧵', path: '/yarn-store',      color: '#e879f9', subKey: 'lots', subLabel: 'lots', kgKey: 'kg' },
   { key: 'greige',         label: 'GREIGE STOCK',      icon: '🧶', path: '/greige',          color: '#60a5fa', subKey: 'rolls', subLabel: 'rolls', kgKey: 'kg' },
-  { key: 'sent_out',       label: 'AT VENDOR',         icon: '🚚', path: '/subcontracting',  color: '#f59e0b', subKey: 'challans', subLabel: 'challans', kgKey: 'kg' },
+  { key: 'sent_out',       label: 'AT VENDOR',         icon: '🚚', path: '/vendor-stock',    color: '#f59e0b', subKey: 'challans', subLabel: 'challans', kgKey: 'kg' },
   { key: 'finished_stock', label: 'FINISHED GOODS',    icon: '✅', path: '/finished-goods',  color: '#22c55e', subKey: 'lots', subLabel: 'lots', kgKey: 'kg' },
   { key: 'dispatched',     label: 'DISPATCHED',        icon: '📤', path: '/dispatch',        color: '#a78bfa', subKey: 'orders', subLabel: 'orders', kgKey: 'kg' },
 ];
@@ -91,9 +91,9 @@ export default function WarehouseOverview() {
       {/* Quick actions */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
         {[
-          { label: 'View Yarn Stock',         path: '/grn',            icon: '🧵', desc: 'Yarn lots currently in store' },
+          { label: 'View Yarn Stock',         path: '/yarn-store',     icon: '🧵', desc: 'Yarn lots currently in store' },
           { label: 'View Greige Stock',      path: '/greige',         icon: '🧶', desc: 'Approved rolls awaiting batching' },
-          { label: 'Subcontract Challans',   path: '/subcontracting', icon: '🚚', desc: 'Send out, track, receive back' },
+          { label: 'Vendor Stock',           path: '/vendor-stock',   icon: '🚚', desc: 'Material currently at vendors' },
           { label: 'Finished Goods Stock',   path: '/finished-goods', icon: '✅', desc: 'Dyed fabric ready for dispatch' },
           { label: 'Customer Dispatch',      path: '/dispatch',       icon: '📤', desc: 'Create dispatch challans' },
         ].map(a => (

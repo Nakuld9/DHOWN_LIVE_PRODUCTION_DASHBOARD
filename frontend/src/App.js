@@ -30,6 +30,7 @@ import Batching from "./pages/Batching";
 import Subcontracting from "./pages/Subcontracting";
 import FinishedGoods from "./pages/FinishedGoods";
 import Dispatch from "./pages/Dispatch";
+import VendorStock from "./pages/VendorStock";
 import GRN from "./pages/GRN";
 import YarnStore from "./pages/YarnStore";
 import YarnIssue from "./pages/YarnIssue";
@@ -105,6 +106,7 @@ function App() {
                   <Route path="/costing"              element={<Costing />} />
                   <Route path="/finished-goods"       element={<FinishedGoods />} />
                   <Route path="/dispatch"             element={<Dispatch />} />
+                  <Route path="/vendor-stock"          element={<VendorStock />} />
                   <Route path="/items"               element={<ItemMaster />} />
                   <Route path="/partners"            element={<Partners />} />
                   <Route path="/admin/masters"       element={<AdminMasters />} />

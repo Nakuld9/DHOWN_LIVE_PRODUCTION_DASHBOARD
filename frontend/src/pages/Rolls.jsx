@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { printRollLabel } from "../utils/printLabel";
 
 const API = `http://localhost:4000`;
 
@@ -248,6 +249,8 @@ const handleMachineChange = (machine_id) => {
                     {(roll.status === "APPROVED" || roll.status === "CLOSED") && (
                       <>
                         <span style={{ color: "#60a5fa" }}>✓ Done</span>
+                        <button onClick={() => printRollLabel(roll)}
+                          style={{ background: "#0ea5e9", border: "none", padding: "4px 8px", color: "white", borderRadius: 5, cursor: "pointer", fontSize: 11, fontWeight: "bold" }}>🏷 Label</button>
                         {roll.qr_image && (
                           <img src={roll.qr_image} alt="QR" title={`Roll QR: ${roll.roll_id}`} style={{ width: 32, height: 32, cursor: "pointer" }}
                             onClick={() => { const w = window.open(); w.document.write(`<img src="${roll.qr_image}" style="width:300px"/><p style="font-family:monospace;font-size:18px">${roll.roll_id}</p>`); }} />

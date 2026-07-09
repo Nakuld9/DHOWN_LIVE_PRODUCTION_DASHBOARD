@@ -4788,11 +4788,12 @@ app.post('/api/subcontract/challans/:id/receive', verifyToken, requireRole('SUPE
         if (!isDyeingOnly) {
           seq += 1;
           newRollId = `${c.challan_number}-R${String(seq).padStart(3, '0')}`;
+          const newRollQr = await generateQR(newRollId);
           await client.query(
-            `INSERT INTO rolls (roll_id, fabric_type, weight_kg, actual_weight_kg, status, warehouse_status, source, closed_at, approved_at)
-             VALUES ($1,$2,$3,$3,'APPROVED','FINISHED','SC_RECEIPT',NOW(),NOW())
+            `INSERT INTO rolls (roll_id, fabric_type, weight_kg, actual_weight_kg, status, warehouse_status, source, closed_at, approved_at, qr_image)
+             VALUES ($1,$2,$3,$3,'APPROVED','FINISHED','SC_RECEIPT',NOW(),NOW(),$4)
              ON CONFLICT (roll_id) DO NOTHING`,
-            [newRollId, it.fabric_type, parseFloat(it.weight_kg)]
+            [newRollId, it.fabric_type, parseFloat(it.weight_kg), newRollQr]
           );
         }
         await client.query(

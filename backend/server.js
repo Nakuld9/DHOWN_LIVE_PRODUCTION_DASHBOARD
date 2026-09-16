@@ -3692,6 +3692,18 @@ app.post('/api/shift-handovers', verifyToken, requireRole('SUPERVISOR'), async (
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── BUSY BRIDGE ─────────────────────────────────────────────────
+// Integration middleware between this dashboard and BUSY accounting, which
+// runs on a SEPARATE PC. The dashboard stays the source of truth for
+// production; BUSY stays the source of truth for the books. Nothing about
+// machines, rolls, downtime or scheduling crosses this boundary.
+//
+// Mounted here so it sits after the API routes and before the React catch-all.
+// A BUSY misconfiguration must never stop machine monitoring from starting, so
+// mountBusyBridge() logs and returns null rather than throwing.
+const { mountBusyBridge } = require('./busy-bridge');
+const busyBridge = mountBusyBridge(app, pool, { verifyToken, requireRole });
+
 // React Router catch-all — must be after all API routes
 if (fs.existsSync(path.join(__dirname, '..', 'frontend', 'build'))) {
   app.get('*', (req, res) => {
@@ -3779,6 +3791,19 @@ server.listen(4000, async () => {
     console.log('[ALERT] WhatsApp auto-alerts disabled — set CALLMEBOT_APIKEY in .env to enable');
   }
 });
+
+// Stop the BUSY queue worker cleanly so a transaction being written to the
+// BUSY share is never abandoned half-way through.
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, () => {
+    if (busyBridge) {
+      busyBridge.stop().catch(() => {}).finally(() => process.exit(0));
+      setTimeout(() => process.exit(1), 10000).unref();
+    } else {
+      process.exit(0);
+    }
+  });
+}
 
 // Data collectors push to port 8090 — same express app, separate HTTP server
 const DC_PORT = parseInt(process.env.DC_PORT || '8090');

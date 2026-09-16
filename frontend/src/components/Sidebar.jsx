@@ -17,6 +17,7 @@ const NAV_LINKS = [
   { to: "/maintenance",           label: "Maintenance",    icon: "🔧" },
   { to: "/maintenance-schedule", label: "PM Schedule",    icon: "📅" },
   { to: "/shift-handover",       label: "Shift Handover", icon: "📝" },
+  { to: "/busy-bridge",          label: "BUSY Bridge",    icon: "🔗" },
   { to: "/settings",             label: "Settings",       icon: "⚙️" },
   { to: "/users",        label: "User Management", icon: "👤" },
 ];

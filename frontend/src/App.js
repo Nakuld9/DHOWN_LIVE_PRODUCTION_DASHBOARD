@@ -24,6 +24,7 @@ import TVDashboard from "./pages/TVDashboard";
 import UserManagement from "./pages/UserManagement";
 import MaintenanceSchedule from "./pages/MaintenanceSchedule";
 import ShiftHandover from "./pages/ShiftHandover";
+import BusyBridge from "./pages/BusyBridge";
 
 function RequireAuth({ children }) {
   const location = useLocation();
@@ -68,6 +69,7 @@ function App() {
                   <Route path="/users"        element={<UserManagement />} />
                   <Route path="/maintenance-schedule" element={<MaintenanceSchedule />} />
                   <Route path="/shift-handover"       element={<ShiftHandover />} />
+                  <Route path="/busy-bridge"          element={<BusyBridge />} />
                 </Routes>
               </div>
             </div>

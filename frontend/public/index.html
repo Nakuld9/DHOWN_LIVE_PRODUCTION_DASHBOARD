@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<!-- Apply saved theme (light/dark/system) before first paint to avoid a flash. -->
+<script>try{var p=localStorage.getItem('dhown_theme')||'light';var e=p==='system'?((window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):p;document.documentElement.setAttribute('data-theme',e);}catch(e){}</script>
+<!-- Without this, phones report a ~980px viewport and the app's own
+     @media (max-width:768px) mobile layout never activates. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="description" content="DHOWN Hosiery Mills — Manufacturing Execution System" />
+<meta name="theme-color" content="#081426" />
+
+<title>DHOWN MES</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json" />
+<link rel="icon" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="DHOWN MES" />
+
+<style>
+  html { font-size: 120%; }
+  /* Phones: the 120% desktop scale is too large once the real viewport applies. */
+  @media (max-width: 768px) { html { font-size: 100%; } }
+  body { margin: 0; background: #050d1a; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+</body>
+</html>

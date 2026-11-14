@@ -1,0 +1,156 @@
+/* Busy-style accounting workspace — a traditional Windows desktop accounting look,
+   deliberately NOT the MES white/green/gold web theme. Scoped under .acct so it
+   never leaks into the rest of the app. Compact, dense, keyboard-first.
+   Original styling inspired by the behaviour of desktop accounting software; no
+   third-party assets or branding are reproduced. */
+
+.acct {
+  --a-bg: #d4d0c8;          /* classic window grey */
+  --a-panel: #f4f3ef;
+  --a-white: #ffffff;
+  --a-ink: #1a1a1a;
+  --a-muted: #555;
+  --a-line: #a9a39a;
+  --a-line-soft: #cfcabf;
+  --a-bar: #0a2a66;         /* deep blue title/menu bar */
+  --a-bar-2: #16428f;
+  --a-accent: #0a2a66;
+  --a-sel: #fff3b0;         /* selected-row yellow */
+  --a-hover: #e8edf7;
+  --a-dr: #0a2a66;
+  --a-cr: #8a1f1f;
+  --a-ok: #136b2f;
+  --a-warn: #8a5a00;
+  --a-err: #8a1f1f;
+  --a-mono: "Consolas", "Courier New", ui-monospace, monospace;
+  --a-ui: "Segoe UI", Tahoma, Arial, sans-serif;
+
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--a-bg); color: var(--a-ink);
+  font-family: var(--a-ui); font-size: 13px; line-height: 1.3;
+  overflow: hidden;
+}
+.acct * { box-sizing: border-box; }
+
+/* Title + menu bar */
+.acct-titlebar { background: linear-gradient(var(--a-bar-2), var(--a-bar)); color: #fff; padding: 4px 10px; display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: .02em; }
+.acct-titlebar .t-sub { font-weight: 400; opacity: .85; font-size: 12px; }
+.acct-titlebar .spacer { flex: 1; }
+.acct-titlebar .t-exit { background: #b91c1c; color: #fff; border: 1px solid #7f1414; padding: 1px 9px; cursor: pointer; font-size: 12px; border-radius: 2px; }
+
+.acct-menubar { background: var(--a-panel); border-bottom: 1px solid var(--a-line); display: flex; align-items: stretch; }
+.acct-menu { position: relative; }
+.acct-menu > button { background: none; border: none; padding: 5px 14px; font: inherit; cursor: pointer; color: var(--a-ink); }
+.acct-menu > button u { text-decoration: underline; }
+.acct-menu > button:hover, .acct-menu.open > button { background: var(--a-bar); color: #fff; }
+.acct-dropdown { position: absolute; top: 100%; left: 0; min-width: 230px; background: var(--a-panel); border: 1px solid var(--a-line); box-shadow: 2px 2px 6px rgba(0,0,0,.3); z-index: 50; padding: 3px; }
+.acct-dropdown button { display: flex; width: 100%; justify-content: space-between; gap: 18px; background: none; border: none; padding: 5px 12px; font: inherit; text-align: left; cursor: pointer; color: var(--a-ink); }
+.acct-dropdown button:hover { background: var(--a-bar); color: #fff; }
+.acct-dropdown button .sc { color: var(--a-muted); font-size: 11px; }
+.acct-dropdown button:hover .sc { color: #cdd6ea; }
+.acct-dropdown .sep { height: 1px; background: var(--a-line-soft); margin: 3px 4px; }
+
+.acct-body { flex: 1; overflow: auto; padding: 10px; }
+.acct-pane { background: var(--a-white); border: 1px solid var(--a-line); max-width: 1120px; margin: 0 auto; }
+.acct-pane-head { background: linear-gradient(var(--a-bar-2), var(--a-bar)); color: #fff; padding: 5px 12px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.acct-pane-head .ph-sub { font-weight: 400; opacity: .85; font-size: 12px; margin-left: auto; }
+.acct-pane-inner { padding: 12px 14px; }
+
+/* Status bar */
+.acct-statusbar { background: var(--a-panel); border-top: 1px solid var(--a-line); display: flex; gap: 0; font-size: 12px; }
+.acct-statusbar .st { padding: 3px 12px; border-right: 1px solid var(--a-line-soft); white-space: nowrap; }
+.acct-statusbar .st b { color: var(--a-accent); }
+.acct-statusbar .spacer { flex: 1; border: none; }
+
+/* Forms */
+.acct-field { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.acct-field > label { width: 150px; text-align: right; color: var(--a-muted); flex-shrink: 0; }
+.acct input, .acct select, .acct textarea { font: inherit; font-size: 13px; border: 1px solid var(--a-line); background: var(--a-white); padding: 3px 6px; color: var(--a-ink); border-radius: 0; }
+.acct input:focus, .acct select:focus, .acct textarea:focus { outline: 2px solid var(--a-bar-2); outline-offset: -1px; background: #fffef2; }
+.acct input[readonly] { background: #efefef; color: #333; }
+.acct .num { font-family: var(--a-mono); text-align: right; }
+
+/* Buttons */
+.acct-btn { font: inherit; font-size: 12.5px; padding: 4px 14px; border: 1px solid var(--a-line); background: linear-gradient(#fdfdfc,#e4e1d9); cursor: pointer; border-radius: 2px; }
+.acct-btn:hover { background: linear-gradient(#fff,#eceae3); }
+.acct-btn:active { background: #d9d6ce; }
+.acct-btn.primary { border-color: #0a2a66; background: linear-gradient(#245bc8,#15408c); color: #fff; font-weight: 600; }
+.acct-btn.primary:hover { background: linear-gradient(#2d6adb,#1a4aa0); }
+.acct-btn.danger { border-color: #7f1414; background: linear-gradient(#e24b4b,#b91c1c); color: #fff; }
+.acct-btn:disabled { opacity: .5; cursor: default; }
+.acct-btnbar { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--a-line-soft); }
+
+/* Dense tables (reports + registers) */
+.acct-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.acct-table th { background: linear-gradient(var(--a-bar-2),var(--a-bar)); color: #fff; font-weight: 600; text-align: left; padding: 4px 8px; position: sticky; top: 0; white-space: nowrap; border-right: 1px solid #2a4a8f; }
+.acct-table th.r, .acct-table td.r { text-align: right; }
+.acct-table td { padding: 2px 8px; border-bottom: 1px solid var(--a-line-soft); white-space: nowrap; }
+.acct-table tbody tr:nth-child(even) { background: #f6f5f1; }
+.acct-table tbody tr:hover { background: var(--a-hover); }
+.acct-table tr.sel, .acct-table tr.sel:hover { background: var(--a-sel); }
+.acct-table td.mono { font-family: var(--a-mono); }
+.acct-table .grp td { background: #e9ecf4; font-weight: 700; color: var(--a-bar); }
+.acct-table tfoot td { background: #e4e1d9; font-weight: 700; border-top: 2px solid var(--a-line); }
+.acct-link { color: var(--a-bar); cursor: pointer; text-decoration: none; }
+.acct-link:hover { text-decoration: underline; }
+.acct-dr { color: var(--a-dr); }
+.acct-cr { color: var(--a-cr); }
+
+/* Voucher entry grid — keyboard-first */
+.acct-vgrid { width: 100%; border-collapse: collapse; font-size: 13px; }
+.acct-vgrid th { background: #e4e1d9; color: var(--a-ink); font-weight: 600; padding: 4px 6px; border: 1px solid var(--a-line); text-align: left; }
+.acct-vgrid th.r { text-align: right; }
+.acct-vgrid td { border: 1px solid var(--a-line-soft); padding: 0; }
+.acct-vgrid td input { width: 100%; border: none; padding: 4px 6px; background: none; }
+.acct-vgrid td input:focus { outline: 2px solid var(--a-bar-2); outline-offset: -2px; background: #fffef2; }
+.acct-vgrid td.r input { text-align: right; font-family: var(--a-mono); }
+.acct-vgrid .vtot td { background: #e4e1d9; font-weight: 700; font-family: var(--a-mono); }
+
+/* account type-ahead popup */
+.acct-pop { position: absolute; z-index: 80; background: #fff; border: 1px solid var(--a-bar); box-shadow: 2px 3px 8px rgba(0,0,0,.3); max-height: 240px; overflow: auto; min-width: 280px; }
+.acct-pop div { padding: 4px 10px; cursor: pointer; display: flex; justify-content: space-between; gap: 14px; }
+.acct-pop div small { color: var(--a-muted); }
+.acct-pop div.on, .acct-pop div:hover { background: var(--a-bar); color: #fff; }
+.acct-pop div.on small { color: #cdd6ea; }
+
+.acct-note { font-size: 12px; color: var(--a-muted); margin: 4px 0; }
+.acct-err-box { background: #fdecec; border: 1px solid #e0b4b4; color: var(--a-err); padding: 6px 10px; margin-bottom: 8px; font-size: 12.5px; }
+.acct-ok-box { background: #eaf6ec; border: 1px solid #b4d8bd; color: var(--a-ok); padding: 6px 10px; margin-bottom: 8px; font-size: 12.5px; }
+.acct-badge { display: inline-block; padding: 0 7px; border-radius: 2px; font-size: 11px; font-weight: 700; border: 1px solid; }
+.b-DRAFT { color: #555; border-color: #aaa; background: #eee; }
+.b-VALIDATED { color: #0a2a66; border-color: #9bb0e0; background: #e8edf7; }
+.b-APPROVED { color: #136b2f; border-color: #9ed0ac; background: #eaf6ec; }
+.b-POSTED { color: #fff; border-color: #0d5a26; background: #136b2f; }
+.b-REVERSED { color: #fff; border-color: #7f1414; background: #8a1f1f; }
+.b-CANCELLED { color: #777; border-color: #bbb; background: #e4e1d9; text-decoration: line-through; }
+
+.acct-tree-row { cursor: default; }
+.acct-tree-row .exp { display: inline-block; width: 16px; text-align: center; cursor: pointer; color: var(--a-muted); }
+
+@media print {
+  .acct-menubar, .acct-statusbar, .acct-titlebar .t-exit, .acct-btnbar, .acct-no-print { display: none !important; }
+  .acct, .acct-body { position: static; overflow: visible; background: #fff; }
+  .acct-pane { border: none; max-width: none; }
+  .acct-pane-head { background: #fff !important; color: #000 !important; border-bottom: 2px solid #000; }
+  .acct-table th { background: #fff !important; color: #000 !important; border-bottom: 1px solid #000; }
+  /* Voucher pane: print the Busy-style voucher, not the editable form. */
+  .acct-voucher-pane .acct-pane-head { display: none !important; }
+  .acct-voucher-pane .acct-pane-inner > :not(.acct-print-voucher) { display: none !important; }
+  .acct-voucher-pane .acct-print-voucher { display: block !important; color: #000; }
+}
+
+/* Busy-format printable voucher (hidden on screen; shown only when printing). */
+.acct-print-voucher { display: none; }
+.acct-print-voucher .pv-head { text-align: center; margin-bottom: 6px; }
+.acct-print-voucher .pv-company { font-size: 18px; font-weight: 700; text-transform: uppercase; }
+.acct-print-voucher .pv-sub { font-size: 12px; }
+.acct-print-voucher .pv-title { text-align: center; font-weight: 700; text-decoration: underline; margin: 10px 0 6px; text-transform: uppercase; letter-spacing: .04em; }
+.acct-print-voucher .pv-meta { display: flex; justify-content: space-between; margin: 6px 2px; font-size: 13px; }
+.acct-print-voucher .pv-table { width: 100%; border-collapse: collapse; margin: 6px 0; }
+.acct-print-voucher .pv-table th, .acct-print-voucher .pv-table td { border: 1px solid #000; padding: 5px 8px; font-size: 13px; }
+.acct-print-voucher .pv-table th:not(:first-child), .acct-print-voucher .pv-table td:not(:first-child) { text-align: right; width: 150px; }
+.acct-print-voucher .pv-words { margin: 8px 2px; font-size: 13px; font-style: italic; }
+.acct-print-voucher .pv-narr { margin: 6px 2px; font-size: 12px; }
+.acct-print-voucher .pv-sign { display: flex; justify-content: space-between; margin-top: 52px; font-size: 12px; }
+.acct-print-voucher .pv-sign span { border-top: 1px solid #000; padding-top: 3px; min-width: 150px; text-align: center; }

@@ -1,0 +1,80 @@
+#!/bin/sh
+# Pre-commit gate.
+#
+# This repository is never pushed — commits are local by decision — so a hosted
+# CI service would be config that never runs. The place to catch a regression is
+# therefore the commit itself.
+#
+# Two tiers, on purpose:
+#   * backend/test  — pure unit tests, no database. Always run, and a failure
+#                     blocks the commit. Around three seconds.
+#   * backend/tests — end-to-end against a real database. Run only when Postgres
+#                     is actually reachable, and skipped with a notice otherwise.
+#                     Blocking a commit because Postgres happens to be stopped
+#                     would train everyone to use --no-verify, which costs more
+#                     than the tests are worth.
+#
+# Bypass deliberately with:  git commit --no-verify
+
+set -e
+
+REPO="$(git rev-parse --show-toplevel)"
+BACKEND="$REPO/backend"
+
+# Nothing staged under backend/ means nothing here can have broken.
+if ! git diff --cached --name-only | grep -q '^backend/'; then
+  exit 0
+fi
+
+if [ ! -d "$BACKEND/node_modules" ]; then
+  echo "pre-commit: backend/node_modules missing — skipping tests (run npm install)"
+  exit 0
+fi
+
+cd "$BACKEND"
+
+echo "pre-commit: unit tests…"
+if ! npx jest --silent; then
+  echo ""
+  echo "pre-commit: unit tests FAILED — commit aborted."
+  echo "            Fix them, or bypass with: git commit --no-verify"
+  exit 1
+fi
+
+# Is the database up? A one-second connection attempt, not a test run.
+DB_UP=$(node -e "
+  require('dotenv').config({quiet:true});
+  const { Pool } = require('pg');
+  const p = new Pool({
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
+    database: process.env.DB_NAME || 'dhown_mes',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    connectionTimeoutMillis: 1000,
+  });
+  p.query('SELECT 1')
+    .then(() => { console.log('yes'); return p.end(); })
+    .catch(() => { console.log('no'); return p.end().catch(() => {}); });
+" 2>/dev/null | tail -1)
+
+if [ "$DB_UP" != "yes" ]; then
+  echo "pre-commit: Postgres unreachable — skipping end-to-end tests."
+  echo "            Run 'npm run test:all' once it is up."
+  exit 0
+fi
+
+echo "pre-commit: end-to-end tests…"
+for suite in payments logistics allocation memory retention integrity migrate ai-guardrails api-paths sales-role gstr1 financial bank-recon soft-delete constraints complaints reports-extra medium-batch matrix-valuation perf-credit line-weights busy-production accounting; do
+  if ! node "tests/$suite.e2e.js" > /tmp/pc-$suite.log 2>&1; then
+    echo ""
+    echo "pre-commit: $suite e2e FAILED — commit aborted."
+    tail -25 /tmp/pc-$suite.log
+    echo ""
+    echo "            Bypass with: git commit --no-verify"
+    exit 1
+  fi
+  echo "  $suite ok"
+done
+
+echo "pre-commit: all tests passed."

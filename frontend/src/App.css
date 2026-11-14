@@ -1,0 +1,215 @@
+/* ── BASE ───────────────────────────────────────────── */
+body {
+  margin: 0;
+  background: #f4f7f3;
+  color: #15231a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* V2 Dashboard pulse animation for alerts */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface-2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--faint); }
+
+/* ── APP LAYOUT ─────────────────────────────────────── */
+.app-layout {
+  display: flex;
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+.app-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── DESKTOP SIDEBAR ────────────────────────────────── */
+.desktop-sidebar {
+  width: 200px;
+  background: var(--bg);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  padding: 16px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+/* ── MOBILE TOP BAR (hidden on desktop) ─────────────── */
+.mobile-topbar {
+  display: none;
+  background: var(--bg);
+  padding: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--gold);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 300;
+  display: flex;
+}
+
+/* ── RESPONSIVE GRID HELPERS ────────────────────────── */
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.card { background: var(--surface); border: 1px solid var(--gold-edge); border-radius: 10px; padding: 20px; }
+.reportCard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.reportCard h3 { color: var(--gold-deep); }
+.reportCard h1 { color: var(--text); }
+.reportSection { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 30px; }
+.reportSection h2 { color: var(--gold-deep); margin-bottom: 20px; }
+.reportSection table { color: var(--text); border-collapse: collapse; }
+.reportSection th, .reportSection td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; }
+
+/* ── PAGE WRAPPERS ──────────────────────────────────── */
+.page-container {
+  padding: 20px;
+  min-height: 100vh;
+  background: var(--bg);
+  color: white;
+}
+
+/* ── KPI CARDS GRID ─────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* ── MACHINE GRID ───────────────────────────────────── */
+.machine-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* ── DATA TABLE WRAPPER ─────────────────────────────── */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  min-width: 500px;
+}
+
+/* ── FORM GRID ──────────────────────────────────────── */
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* ════════════════════════════════════════════════════
+   MOBILE  (≤ 768px)
+   ════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* Hide desktop sidebar, show mobile topbar */
+  .desktop-sidebar { display: none; }
+  .mobile-topbar   { display: flex; }
+
+  /* Content takes full width, add top padding for topbar */
+  .app-content { padding-top: 0; }
+
+  /* Page padding tighter on mobile */
+  .page-container { padding: 12px; }
+
+  /* KPI grid — 2 columns on mobile */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* Forms — 1 column on mobile */
+  .form-grid-3,
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* General inline grids — override to single column */
+  div[style*="grid-template-columns: repeat(5"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  div[style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  div[style*="grid-template-columns: repeat(6"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* All tables scroll horizontally */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Reduce huge heading sizes on mobile */
+  h1[style*="font-size: 58px"],
+  h1[style*="fontSize: 58px"] {
+    font-size: 28px !important;
+  }
+
+  /* Modals — full width on mobile */
+  div[style*="width: 560px"],
+  div[style*="width: 400px"] {
+    width: 95vw !important;
+    max-width: 95vw !important;
+  }
+
+  /* Button rows — wrap on mobile */
+  div[style*="display: flex"][style*="gap"] {
+    flex-wrap: wrap;
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   TABLET  (769px – 1024px)
+   ════════════════════════════════════════════════════ */
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  .desktop-sidebar { width: 160px; padding: 12px; }
+
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  div[style*="grid-template-columns: repeat(5"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  div[style*="grid-template-columns: repeat(6"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}

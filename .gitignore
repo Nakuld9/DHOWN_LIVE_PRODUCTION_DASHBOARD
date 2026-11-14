@@ -1,0 +1,41 @@
+node_modules
+backend/certs/
+
+# Logs (server, poller, boot, error)
+*.log
+
+# Database backups (daily dumps, pre-wipe snapshots)
+backend/backups/
+**/backups/
+
+# Local git worktrees created by tooling
+.claude/worktrees/
+
+# Secrets / local settings
+backend/.env
+.claude/settings.local.json
+
+# WhatsApp media/uploads (runtime files, not source)
+backend/uploads/
+
+# Windows service wrapper (WinSW) + its runtime logs — deployment artifact, never commit
+backend/daemon/
+logs/
+
+# env backups (contain secrets — never commit)
+.env.bak*
+**/.env.bak*
+*.env.bak*
+*.ico
+
+# clean-snapshot hardening
+.env
+.env.*
+*.dump
+*.pgdump
+*.bundle
+backups/
+PHASE*_BACKUP/
+node_modules/
+frontend/build/
+.claude/settings.local.json

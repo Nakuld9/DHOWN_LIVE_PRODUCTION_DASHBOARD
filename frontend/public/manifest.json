@@ -1,0 +1,58 @@
+{
+  "name": "DHOWN MES — Manufacturing Execution System",
+  "short_name": "DHOWN MES",
+  "description": "DHOWN Hosiery Mills — live production, roll scanning, quality and inventory.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#050d1a",
+  "theme_color": "#081426",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scan a roll",
+      "short_name": "Scan",
+      "description": "Open the roll QR scanner",
+      "url": "/rfid"
+    },
+    {
+      "name": "Quality inspection",
+      "short_name": "QC",
+      "description": "Scan-driven quality entry",
+      "url": "/m/qc"
+    },
+    {
+      "name": "Machines",
+      "short_name": "Machines",
+      "description": "Live machine status",
+      "url": "/machines"
+    }
+  ]
+}

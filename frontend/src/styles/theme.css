@@ -1,0 +1,158 @@
+/* ============================================================================
+   DHOWN MES — design tokens. WHITE / GREEN / GOLD identity, DUAL THEME.
+   (2026-10-12 recolour + light/dark split.)
+
+   Green = primary/action · Gold = accent/highlight · deep-green sidebar shell.
+   Every token is defined twice: LIGHT on :root (default), DARK under
+   [data-theme="dark"]. Pages reference these via var(--token) (inline styles
+   included), so one attribute on <html> swaps the whole app — inline styles
+   re-resolve var() automatically. Imported AFTER App.css so this wins.
+   ========================================================================== */
+:root{
+  /* ── Surfaces ──────────────────────────────────────────────────────────── */
+  --bg:#f4f7f3;
+  --surface:#ffffff;
+  --surface-2:#eef2ec;
+  --raised:#ffffff;
+  --border:#dde4dc;
+  --border-soft:#e9eee7;
+
+  /* ── Text ──────────────────────────────────────────────────────────────── */
+  --text:#15231a;
+  --muted:#586b5d;
+  --faint:#8a978b;
+  --on-green:#ffffff;    /* text/icon on a green fill */
+  --on-gold:#1b1403;     /* text/icon on a gold fill */
+
+  /* ── Green = primary / action / brand ─────────────────────────────────── */
+  --green:#1f9d57;
+  --green-2:#2bb268;
+  --green-deep:#157a43;
+  --green-dim:#e7f6ed;     /* tinted fill */
+  --green-edge:#c2e6d0;    /* tinted border */
+
+  /* ── Gold = accent / highlight / emphasis ─────────────────────────────── */
+  --gold:#c9a227;
+  --gold-2:#ddba4d;
+  --gold-deep:#a07f16;
+  --gold-dim:#faf4dc;
+  --gold-edge:#ecdc95;
+
+  /* ── Links / info / decorative ────────────────────────────────────────── */
+  --link:#2563eb;
+  --purple:#7c3aed;
+  --pink:#db2777;
+
+  /* ── Semantic status ──────────────────────────────────────────────────── */
+  --ok:#1f9d57;
+  --idle:#d99311;
+  --crit:#d8392f;
+  --crit-dim:#fdecec;
+  --crit-edge:#f3b0b0;
+  --mnt:#5b7089;
+  --off:#9aa0a6;
+
+  /* ── Legacy aliases (old --yellow refs now read gold) ─────────────────── */
+  --yellow:#c9a227;
+  --yellow-2:#ddba4d;
+  --yellow-deep:#a07f16;
+  --yellow-dim:#faf4dc;
+  --yellow-edge:#ecdc95;
+
+  /* ── Deep-green sidebar shell (fixed across both themes) ──────────────── */
+  --shell:#0e2a1b;
+  --shell-2:#0a2016;
+  --shell-border:#1c4330;
+  --shell-text:#e3eee5;
+  --shell-muted:#9fc0a8;
+  --shell-gold:#e7c24e;
+
+  --r:9px; --r-sm:6px; --r-lg:13px;
+  --shadow:0 10px 30px -16px rgba(16,40,24,.28);
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sb-w:236px;
+  color-scheme:light;
+}
+
+/* ── DARK THEME ──────────────────────────────────────────────────────────── */
+:root[data-theme="dark"]{
+  --bg:#0b140d;
+  --surface:#12201a;
+  --surface-2:#16271d;
+  --raised:#1b3326;
+  --border:#24402f;
+  --border-soft:#1a2d22;
+
+  --text:#eaf3ec;
+  --muted:#9fc0a8;
+  --faint:#6f8a78;
+  --on-green:#ffffff;
+  --on-gold:#1b1403;
+
+  --green:#34c173;
+  --green-2:#49d487;
+  --green-deep:#1f9d57;
+  --green-dim:#11301f;
+  --green-edge:#1d4a31;
+
+  --gold:#e7c24e;
+  --gold-2:#f0d072;
+  --gold-deep:#c9a227;
+  --gold-dim:#2a2208;
+  --gold-edge:#5a4a12;
+
+  --link:#6ba4f5;
+  --purple:#a78bfa;
+  --pink:#f472b6;
+
+  --ok:#34c173;
+  --idle:#f0a93a;
+  --crit:#ff5a5a;
+  --crit-dim:#3a1412;
+  --crit-edge:#7f1d1d;
+  --mnt:#7c8aa5;
+  --off:#55555e;
+
+  --yellow:#e7c24e;
+  --yellow-2:#f0d072;
+  --yellow-deep:#c9a227;
+  --yellow-dim:#2a2208;
+  --yellow-edge:#5a4a12;
+
+  --shadow:0 10px 30px -16px rgba(0,0,0,.72);
+  color-scheme:dark;
+}
+
+/* ── Shell ground ────────────────────────────────────────────────────────── */
+body{ background:var(--bg); color:var(--text); }
+.app-layout{ background:var(--bg); }
+.app-content{ background:var(--bg); min-height:100vh; display:flex; flex-direction:column; }
+.page-container{ background:var(--bg); color:var(--text); }
+.desktop-sidebar{
+  width:var(--sb-w);
+  background:var(--shell);
+  border-right:1px solid var(--shell-border);
+  color:var(--shell-text);
+  padding:0;
+}
+.mobile-topbar{ background:var(--shell); border-bottom:1px solid var(--shell-border); }
+.app-main{ flex:1; min-width:0; min-height:0; }
+
+/* ── Reusable primitives ─────────────────────────────────────────────────── */
+.ui-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r); box-shadow:var(--shadow); }
+.ui-btn{ font:inherit; font-weight:600; font-size:13px; border-radius:var(--r-sm); padding:9px 15px; border:1px solid transparent; cursor:pointer; }
+.ui-btn-pri{ background:var(--green); color:var(--on-green); font-weight:700; }
+.ui-btn-pri:hover{ background:var(--green-deep); }
+.ui-btn-sec{ background:var(--surface-2); color:var(--text); border-color:var(--border); }
+.ui-btn-ghost{ background:transparent; color:var(--muted); border-color:var(--border); }
+.ui-pill{ font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:99px; display:inline-flex; align-items:center; gap:6px; }
+.ui-pill .d{ width:7px; height:7px; border-radius:50%; }
+.mono{ font-family:var(--mono); font-variant-numeric:tabular-nums; }
+
+/* ── Form-control + scrollbar polish ─────────────────────────────────────── */
+select option{ background:var(--surface); color:var(--text); }
+::selection{ background:rgba(31,157,87,.22); color:inherit; }
+::-webkit-scrollbar{ width:8px; height:8px; }
+::-webkit-scrollbar-track{ background:var(--surface-2); }
+::-webkit-scrollbar-thumb{ background:var(--border); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover{ background:var(--faint); }
